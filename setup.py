@@ -19,6 +19,7 @@ setup(
         "begood_forms",
         "begood_forms.templatetags",
     ],
+    include_package_data=True,
     long_description=read("README.markdown"),
     classifiers=[
         "Development Status :: 5 - Production/Stable",
