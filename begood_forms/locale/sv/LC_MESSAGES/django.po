@@ -1,0 +1,171 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-05-06 15:59+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: admin.py:22
+msgid "Advanced"
+msgstr "Avancerat"
+
+#: admin.py:31 models.py:169
+msgid "messages"
+msgstr "meddelanden"
+
+#: admin.py:32
+msgid "Messages"
+msgstr "Meddelanden"
+
+#: models.py:18
+msgid "Send email"
+msgstr "Skicka e-post"
+
+#: models.py:19
+msgid "Post to website"
+msgstr "Skicka till hemsida"
+
+#: models.py:23
+msgid "Text"
+msgstr "Text"
+
+#: models.py:24
+msgid "Text Area"
+msgstr "Textarea"
+
+#: models.py:25
+msgid "Email"
+msgstr "E-post"
+
+#: models.py:26
+msgid "Number"
+msgstr "Siffra"
+
+#: models.py:27
+msgid "Choices"
+msgstr "Alternativ"
+
+#: models.py:28
+msgid "Date"
+msgstr "Datum"
+
+#: models.py:29
+msgid "Time"
+msgstr "Tid"
+
+#: models.py:30
+msgid "Date & Time"
+msgstr "Datum & tid"
+
+#: models.py:31
+msgid "Hidden"
+msgstr "Gömd"
+
+#: models.py:36 models.py:108
+msgid "name"
+msgstr "namn"
+
+#: models.py:37
+msgid "description"
+msgstr "beskrivning"
+
+#: models.py:38
+msgid "thank you message"
+msgstr "tackmeddelande"
+
+#: models.py:39
+msgid "action"
+msgstr "åtgärd"
+
+#: models.py:41
+msgid "target"
+msgstr "mottagare"
+
+#: models.py:42
+msgid "The email addresses to send to, or the website to post to."
+msgstr "E-postadresser eller hemsida att skicka till."
+
+#: models.py:50
+msgid "form"
+msgstr "formulär"
+
+#: models.py:51
+msgid "forms"
+msgstr "formulär"
+
+#: models.py:75
+msgid "Submitted form: "
+msgstr "Skickat formulär: "
+
+#: models.py:107
+msgid "label"
+msgstr "beteckning"
+
+#: models.py:109
+msgid "initial value"
+msgstr "startvärde"
+
+#: models.py:110
+msgid "required"
+msgstr "måste fyllas i"
+
+#: models.py:111
+msgid "type"
+msgstr "typ"
+
+#: models.py:113
+msgid "choices"
+msgstr "alternativ"
+
+#: models.py:114
+msgid "order"
+msgstr "ordning"
+
+#: models.py:118
+msgid "field"
+msgstr "fält"
+
+#: models.py:119
+msgid "fields"
+msgstr "fält"
+
+#: models.py:155
+msgid "subject"
+msgstr "ämne"
+
+#: models.py:156
+msgid "from"
+msgstr "från"
+
+#: models.py:157
+msgid "to"
+msgstr "till"
+
+#: models.py:158 models.py:168
+msgid "message"
+msgstr "meddelande"
+
+#: models.py:159
+msgid "date"
+msgstr "datum"
+
+#: templates/begood_forms/email.txt:3
+msgid "Sent"
+msgstr "Skickat"
+
+#: templates/begood_forms/form.html:26
+msgid "Submit"
+msgstr "Skicka"

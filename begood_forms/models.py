@@ -39,7 +39,7 @@ class BeGoodForm(models.Model):
   action = models.CharField(_('action'), max_length=2,
       choices=ACTION_TYPE_CHOICES, default='em')
   target = models.TextField(_('target'),
-      help_text="The email addresses to send to, or the website to post to.")
+      help_text=_("The email addresses to send to, or the website to post to."))
 
   sites = MultiSiteField()
 
@@ -103,7 +103,7 @@ class BeGoodForm(models.Model):
 
 
 class BeGoodFormField(models.Model):
-  form = models.ForeignKey(BeGoodForm, related_name="fields")
+  form = models.ForeignKey(BeGoodForm, verbose_name=_('form'), related_name="fields")
   label = models.CharField(_('label'), max_length=255)
   name = models.SlugField(_('name'), max_length=100)
   initial = models.TextField(_('initial value'), blank=True)
@@ -151,7 +151,7 @@ class BeGoodFormField(models.Model):
 
 
 class BeGoodFormMessage(models.Model):
-  form = models.ForeignKey(BeGoodForm, related_name="messages")
+  form = models.ForeignKey(BeGoodForm, verbose_name=_('form'), related_name="messages")
   subject = models.CharField(_('subject'), max_length=2047)
   from_address = models.CharField(_('from'), max_length=2047)
   to_address = models.CharField(_('to'), max_length=2047)
