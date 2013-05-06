@@ -17,7 +17,7 @@ setup(
     license="MIT",
     packages=[
         "begood_forms",
-        "begood_sites.templatetags",
+        "begood_forms.templatetags",
     ],
     long_description=read("README.markdown"),
     classifiers=[
