@@ -1,0 +1,29 @@
+{% load hotlinks i18n %}
+
+{{ description|hotlinks|safe }}
+<form class="form-horizontal" method="post" action="{{ action }}">
+  {% csrf_token %}
+
+  {% for field in form %}
+    {% if field.is_hidden %}
+      {{ field }}
+    {% else %}
+      <div class="control-group{% if field.errors %} error{% endif %}">
+        <label class="control-label" for="{{ field.auto_id }}">{{ field.label }}</label>
+        <div class="controls">
+          {{ field }}
+          <span class="help-inline">{{ field.errors }}</span>
+          {% if field.help_text %}
+          <span class="help-block">{{ field.help_text|safe }}</span>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+  {% endfor %}
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary">
+      {% trans 'Submit' %}
+    </button>
+  </div>
+</form>
