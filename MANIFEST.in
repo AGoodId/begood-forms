@@ -1,3 +1,4 @@
 include LICENSE
 include README.markdown
 recursive-include begood_forms/templates *
+recursive-include begood_forms/locale *
