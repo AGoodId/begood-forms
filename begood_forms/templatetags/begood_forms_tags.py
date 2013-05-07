@@ -9,12 +9,14 @@ register = Library()
 
 @register.assignment_tag
 def get_form(id_or_name):
+  if not id_or_name:
+    return None
   try:
     return BeGoodForm.objects.get(id=id_or_name)
-  except BeGoodForm.DoesNotExist:
+  except:
     try:
       return BeGoodForm.objects.get(name=id_or_name)
-    except BeGoodForm.DoesNotExist:
+    except:
       return None
 
 
