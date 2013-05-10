@@ -123,31 +123,38 @@ class BeGoodFormField(models.Model):
 
   def get_form_field(self):
     if self.type == 't': # Text
-      return forms.CharField(max_length=255, required=self.required, label=self.label)
+      field = forms.CharField(max_length=255)
 
     if self.type == 'ta': # Text Area
-      return forms.CharField(required=self.required, label=self.label, widget=forms.widgets.Textarea())
+      field = forms.CharField(widget=forms.widgets.Textarea())
 
     if self.type == 'e': # Email
-      return forms.EmailField(required=self.required, label=self.label)
+      field = forms.EmailField()
 
     if self.type == 'n': # Number
-      return forms.DecimalField(required=self.required, label=self.label)
+      field = forms.DecimalField()
 
     if self.type == 'c': # Choices
-      return forms.ChoiceField(choices=[(c,c) for c in self.choices], required=self.required, label=self.label)
+      field = forms.ChoiceField(choices=[(c,c) for c in self.choices])
 
     if self.type == 'd': # Date
-      return forms.DateField(required=self.required, label=self.label)
+      field = forms.DateField()
 
     if self.type == 't': # Time
-      return forms.TimeField(required=self.required, label=self.label)
+      field = forms.TimeField()
 
     if self.type == 'dt': # Date & Time
-      return forms.DateTimeField(required=self.required, label=self.label)
+      field = forms.DateTimeField()
 
     if self.type == 'h': # Hidden
-      return forms.CharField(required=self.required, label=self.label, widget=forms.widgets.HiddenInput())
+      field = forms.CharField(widget=forms.widgets.HiddenInput())
+
+    if field:
+      field.required = self.required
+      field.label = self.label
+      if self.initial:
+        field.initial = self.initial
+      return field
 
 
 class BeGoodFormMessage(models.Model):
