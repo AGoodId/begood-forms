@@ -26,7 +26,7 @@ FIELD_TYPE_CHOICES = (
   ('n', _('Number')),
   ('c', _('Choices')),
   ('d', _('Date')),
-  ('t', _('Time')),
+  ('tm', _('Time')),
   ('dt', _('Date & Time')),
   ('h', _('Hidden')),
 )
@@ -140,7 +140,7 @@ class BeGoodFormField(models.Model):
     if self.type == 'd': # Date
       field = forms.DateField()
 
-    if self.type == 't': # Time
+    if self.type == 'tm': # Time
       field = forms.TimeField()
 
     if self.type == 'dt': # Date & Time
