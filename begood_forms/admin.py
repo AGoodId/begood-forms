@@ -2,6 +2,7 @@ from django.forms import widgets
 from django.contrib import admin
 from django.conf import settings
 from django.utils.translation import ugettext as _
+from django.shortcuts import render
 
 
 from begood.contrib.admin.widgets import WysiwygTextarea
@@ -18,12 +19,19 @@ class BeGoodFormFieldInlineAdmin(admin.StackedInline):
 
 class BeGoodFormAdmin(SiteModelAdmin):
   fieldsets = [
-    (None, {'fields': ['name', 'description', 'valid_content', 'action', 'target']}),
-    (_('Advanced'), {'fields': ['sites'], 'classes': ['collapse']}),
+      (None, {'fields': ['name', 'description', 'action', 'target']}),
+      (_('Confirmation'), {'fields': ['valid_content', 'confirm_mail', 'confirm_subject']}),
+      (_('Advanced'), {'fields': ['sites'], 'classes': ['collapse']}),
   ]
   list_display = ['name', 'messages_links']
   search_fields = ['name']
-  inlines = [ BeGoodFormFieldInlineAdmin, ]
+  actions = ['generate_list']
+  inlines = [BeGoodFormFieldInlineAdmin, ]
+
+  def generate_list(modeladmin, request, queryset):
+    context = {'forms': queryset}
+    return render(request, 'begood_forms/form_message_list.html', context)
+  generate_list.short_description = _("Get a list of all answers")
 
   def messages_links(self, obj):
     count = BeGoodFormMessage.objects.filter(form_id=obj.id).count()
@@ -38,14 +46,14 @@ class BeGoodFormAdmin(SiteModelAdmin):
     if field.name == 'description' or field.name == 'valid_content':
       # Initiate description field with a wysiwyg editor
       kwargs['widget'] = WysiwygTextarea(
-        attrs={'cols': 86, 'rows': 10}
+          attrs={'cols': 86, 'rows': 10}
       )
     return super(BeGoodFormAdmin, self).formfield_for_dbfield(field, **kwargs)
 
 
 class BeGoodFormMessageAdmin(SiteModelAdmin):
-  list_display = ['form', 'from_address', 'date']
-  list_display_links = ('from_address', 'date')
+  list_display = ['form', 'from_address', 'to_address', 'date', ]
+  list_display_links = ('from_address', 'to_address', 'date', )
   list_filter = ('form', 'date')
   search_fields = ['message', 'from_address', 'to_address', 'subject']
   fields = ['date', 'from_address', 'to_address', 'subject', 'message']
