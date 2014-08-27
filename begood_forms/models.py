@@ -10,25 +10,28 @@ from django.core.mail import send_mail
 from django.template import loader, Context
 
 
-from begood.fields import ListField # TODO: Break out listfield
+from jsonfield import JSONField
+
+
+from begood.fields import ListField  # TODO: Break out listfield
 from begood_sites.fields import MultiSiteField, SingleSiteField
 
 
 ACTION_TYPE_CHOICES = (
-  ('em', _('Send email')),
-  ('ex', _('Post to website')),
+    ('em', _('Send email')),
+    ('ex', _('Post to website')),
 )
 
 FIELD_TYPE_CHOICES = (
-  ('t', _('Text')),
-  ('ta', _('Text Area')),
-  ('e', _('Email')),
-  ('n', _('Number')),
-  ('c', _('Choices')),
-  ('d', _('Date')),
-  ('tm', _('Time')),
-  ('dt', _('Date & Time')),
-  ('h', _('Hidden')),
+    ('t', _('Text')),
+    ('ta', _('Text Area')),
+    ('e', _('Email')),
+    ('n', _('Number')),
+    ('c', _('Choices')),
+    ('d', _('Date')),
+    ('tm', _('Time')),
+    ('dt', _('Date & Time')),
+    ('h', _('Hidden')),
 )
 
 
@@ -36,9 +39,13 @@ class BeGoodForm(models.Model):
   name = models.CharField(_('name'), max_length=255)
   description = models.TextField(_('description'), blank=True)
   valid_content = models.TextField(_('thank you message'), blank=True)
-  action = models.CharField(_('action'), max_length=2,
+  confirm_mail = models.BooleanField(_('send thank you to e-mail'), help_text=_('if there is an e-mail field the thank you message will be sent by email.'), default=False)
+  confirm_subject = models.CharField(_('subject for thank you e-mail'), max_length=255, blank=True)
+  action = models.CharField(
+      _('action'), max_length=2,
       choices=ACTION_TYPE_CHOICES, default='em')
-  target = models.TextField(_('target'),
+  target = models.TextField(
+      _('target'),
       help_text=_("The email addresses to send to, or the website to post to."))
 
   sites = MultiSiteField()
@@ -57,8 +64,9 @@ class BeGoodForm(models.Model):
     """
     Get a Django form class that this instance represents.
     """
-    attrs = dict((field.name, field.get_form_field())
-        for field in self.fields.all())
+    attrs = dict(
+        (field.name, field.get_form_field()) for field in self.fields.all()
+    )
     return type("GeneratedBeGoodForm", (forms.Form,), attrs)
 
   def process(self, request):
@@ -83,17 +91,28 @@ class BeGoodForm(models.Model):
           fields = [{'label': f.label, 'value': form.cleaned_data[f.name]} for f in form]
           send_date = datetime.now()
           context = Context({
-            'fields': fields,
-            'date': send_date,
+              'fields': fields,
+              'date': send_date,
           })
           t = loader.get_template('begood_forms/email.txt')
           message = t.render(context)
 
           send_mail(subject, message, from_address, self.target.split(','), fail_silently=True)
 
+          if self.confirm_mail and self.confirm_subject and self.valid_content:
+            try:
+              email_fields = [f.field for f in form if f.field.__class__.__name__ == 'EmailField']
+              if email_fields:
+                email = form.cleaned_data[email_fields[0].label]
+                send_mail(self.confirm_subject, self.valid_content, from_address, [email], fail_silently=False)
+            except:
+              pass
+
           # Store as a database entry as well
-          form_message = BeGoodFormMessage(form=self, subject=subject, from_address=from_address,
-              to_address=self.target, message=message, date=send_date)
+          form_message = BeGoodFormMessage(
+              form=self, subject=subject, from_address=from_address,
+              to_address=self.target, message=message, date=send_date, data=fields
+          )
           form_message.save()
           form_message.sites.add(*self.sites.all().values_list('id', flat=True))
     else:
@@ -108,7 +127,8 @@ class BeGoodFormField(models.Model):
   name = models.SlugField(_('name'), max_length=100)
   initial = models.TextField(_('initial value'), blank=True)
   required = models.BooleanField(_('required'), default=True)
-  type = models.CharField(_('type'), max_length=2,
+  type = models.CharField(
+      _('type'), max_length=2,
       choices=FIELD_TYPE_CHOICES, default='t')
   choices = ListField(_('choices'), blank=True)
   order = models.PositiveIntegerField(_('order'))
@@ -122,31 +142,31 @@ class BeGoodFormField(models.Model):
     return unicode(self.form) + ' - ' + self.label
 
   def get_form_field(self):
-    if self.type == 't': # Text
+    if self.type == 't':  # Text
       field = forms.CharField(max_length=255)
 
-    if self.type == 'ta': # Text Area
+    if self.type == 'ta':  # Text Area
       field = forms.CharField(widget=forms.widgets.Textarea())
 
-    if self.type == 'e': # Email
+    if self.type == 'e':  # Email
       field = forms.EmailField()
 
-    if self.type == 'n': # Number
+    if self.type == 'n':  # Number
       field = forms.DecimalField()
 
-    if self.type == 'c': # Choices
-      field = forms.ChoiceField(choices=[(c,c) for c in self.choices])
+    if self.type == 'c':  # Choices
+      field = forms.ChoiceField(choices=[(c, c) for c in self.choices])
 
-    if self.type == 'd': # Date
+    if self.type == 'd':  # Date
       field = forms.DateField()
 
-    if self.type == 'tm': # Time
+    if self.type == 'tm':  # Time
       field = forms.TimeField()
 
-    if self.type == 'dt': # Date & Time
+    if self.type == 'dt':  # Date & Time
       field = forms.DateTimeField()
 
-    if self.type == 'h': # Hidden
+    if self.type == 'h':  # Hidden
       field = forms.CharField(widget=forms.widgets.HiddenInput())
 
     if field:
@@ -164,6 +184,7 @@ class BeGoodFormMessage(models.Model):
   to_address = models.CharField(_('to'), max_length=2047)
   message = models.TextField(_('message'), blank=True)
   date = models.DateTimeField(_('date'))
+  data = JSONField()
 
   sites = MultiSiteField()
 
@@ -177,4 +198,3 @@ class BeGoodFormMessage(models.Model):
 
   def __unicode__(self):
     return 'Message from ' + unicode(self.form) + ' ' + unicode(self.date)
-
