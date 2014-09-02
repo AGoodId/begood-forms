@@ -8,6 +8,7 @@ from django.utils.translation import ugettext as _
 from django.contrib.sites.managers import CurrentSiteManager
 from django.core.mail import send_mail, send_mass_mail
 from django.template import loader, Context
+from django.template.defaultfilters import slugify
 
 
 from jsonfield import JSONField
@@ -105,11 +106,10 @@ class BeGoodForm(models.Model):
             try:
               email_fields = [f.field for f in form if f.field.__class__.__name__ == 'EmailField']
               if email_fields:
-                email = form.cleaned_data[email_fields[0].label]
+                email = form.cleaned_data[slugify(email_fields[0].label)]
                 mails.append((self.confirm_subject, self.valid_content, from_address, [email]))
             except:
               pass
-
           send_mass_mail(mails, fail_silently=True)
 
           # Store as a database entry as well
