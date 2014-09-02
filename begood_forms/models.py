@@ -142,6 +142,7 @@ class BeGoodFormField(models.Model):
     return unicode(self.form) + ' - ' + self.label
 
   def get_form_field(self):
+    field = None
     if self.type == 't':  # Text
       field = forms.CharField(max_length=255)
 
