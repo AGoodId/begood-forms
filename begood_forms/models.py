@@ -6,7 +6,7 @@ from django.conf import settings
 from django.db import models
 from django.utils.translation import ugettext as _
 from django.contrib.sites.managers import CurrentSiteManager
-from django.core.mail import send_mail
+from django.core.mail import send_mail, send_mass_mail
 from django.template import loader, Context
 
 
@@ -97,16 +97,20 @@ class BeGoodForm(models.Model):
           t = loader.get_template('begood_forms/email.txt')
           message = t.render(context)
 
-          send_mail(subject, message, from_address, self.target.split(','), fail_silently=True)
+          mails = [
+            (subject, message, from_address, self.target.split(','))
+          ]
 
           if self.confirm_mail and self.confirm_subject and self.valid_content:
             try:
               email_fields = [f.field for f in form if f.field.__class__.__name__ == 'EmailField']
               if email_fields:
                 email = form.cleaned_data[email_fields[0].label]
-                send_mail(self.confirm_subject, self.valid_content, from_address, [email], fail_silently=False)
+                mails.append((self.confirm_subject, self.valid_content, from_address, [email]))
             except:
               pass
+
+          send_mass_mail(mails, fail_silently=True)
 
           # Store as a database entry as well
           form_message = BeGoodFormMessage(
