@@ -108,7 +108,9 @@ class BeGoodForm(models.Model):
               email_fields = [f.field for f in form if f.field.__class__.__name__ == 'EmailField']
               if email_fields:
                 email = form.cleaned_data[slugify(email_fields[0].label)]
-                mails.append((self.confirm_subject, strip_tags(self.valid_content), from_address, [email]))
+                # Ugly hack because wysiwyg-editor doesnt add linebreaks
+                msg = strip_tags(self.valid_content.replace('</p>', '</p>\r\n').replace('<br>', '<br>\r\n'))
+                mails.append((self.confirm_subject, msg, from_address, [email]))
             except:
               pass
           send_mass_mail(mails, fail_silently=True)
