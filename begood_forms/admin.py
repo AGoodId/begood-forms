@@ -1,8 +1,11 @@
 # encoding: utf-8
+import datetime
+
 from django.forms import widgets
 from django.contrib import admin
 from django.conf import settings
 from django.utils.translation import ugettext as _
+from django.template.defaultfilters import slugify
 from django.shortcuts import render
 
 
@@ -43,7 +46,7 @@ class BeGoodFormAdmin(SiteModelAdmin):
     queryset = queryset[0]
 
     response = HttpResponse(content_type="text/csv")
-    response['Content-Disposition'] = 'attachment; filename="%s.csv"' % ('asdf')
+    response['Content-Disposition'] = 'attachment; filename="%s-%s.csv"' % (slugify(queryset.name), datetime.datetime.today().strftime("%Y-%m-%d"))
 
     writer = csv.writer(response)
 
