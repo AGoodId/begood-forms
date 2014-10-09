@@ -1,3 +1,4 @@
+# encoding: utf-8
 from django.forms import widgets
 from django.contrib import admin
 from django.conf import settings
@@ -25,13 +26,43 @@ class BeGoodFormAdmin(SiteModelAdmin):
   ]
   list_display = ['name', 'messages_links']
   search_fields = ['name']
-  actions = ['generate_list']
+  actions = ['generate_list', 'export_csv']
   inlines = [BeGoodFormFieldInlineAdmin, ]
 
   def generate_list(modeladmin, request, queryset):
     context = {'forms': queryset}
     return render(request, 'begood_forms/form_message_list.html', context)
   generate_list.short_description = _("Get a list of all answers")
+
+  def generate_list(modeladmin, request, queryset):
+    import csv
+    from django.http import HttpResponse
+
+    if queryset.count() > 1:
+      return HttpResponse(_('You can only export 1 form at a time.'))
+    queryset = queryset[0]
+
+    response = HttpResponse(content_type="text/csv")
+    response['Content-Disposition'] = 'attachment; filename="%s.csv"' % ('asdf')
+
+    writer = csv.writer(response)
+
+    # First row is the categories.
+    writer.writerow([unicode(f.label).encode('utf-8') for f in queryset.fields.all()])
+
+    row = []
+    for msg in queryset.messages.all():
+      for f in queryset.fields.all():
+        for test in msg.data:
+          if test['label'] == f.label:
+            row.append(unicode(test['value']).encode('utf-8'))
+      writer.writerow(row)
+      row = []
+
+    return response
+
+
+  generate_list.short_description = _("Export as CSV")
 
   def messages_links(self, obj):
     count = BeGoodFormMessage.objects.filter(form_id=obj.id).count()
