@@ -4,7 +4,7 @@ from datetime import datetime
 from django import forms
 from django.conf import settings
 from django.db import models
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 from django.contrib.sites.managers import CurrentSiteManager
 from django.core.mail import send_mail, send_mass_mail
 from django.template import loader, Context
