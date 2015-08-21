@@ -1,4 +1,5 @@
 from datetime import datetime
+import re
 
 
 from django import forms
@@ -104,7 +105,15 @@ class BeGoodForm(models.Model):
           ]
 
           # Interpolate content from form where wanted
-          self.valid_content = self.valid_content.format(**form.cleaned_data)
+          def replacement(m):
+            key = m.group(1)
+            try:
+              return form.cleaned_data[key]
+            except KeyError:
+              return key
+          pattern = r'{{ *([a-zA-Z0-9-]+) *}}'
+          self.valid_content = re.sub(pattern, replacement, self.valid_content)
+
           if self.confirm_mail and self.confirm_subject and self.valid_content:
             try:
               email_fields = [f.field for f in form if f.field.__class__.__name__ == 'EmailField']
