@@ -103,6 +103,8 @@ class BeGoodForm(models.Model):
             (subject, message, from_address, self.target.split(','))
           ]
 
+          # Interpolate content from form where wanted
+          self.valid_content = self.valid_content.format(**form.cleaned_data)
           if self.confirm_mail and self.confirm_subject and self.valid_content:
             try:
               email_fields = [f.field for f in form if f.field.__class__.__name__ == 'EmailField']
