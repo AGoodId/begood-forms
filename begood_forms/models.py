@@ -106,12 +106,12 @@ class BeGoodForm(models.Model):
 
           # Interpolate content from form where wanted
           def replacement(m):
-            key = m.group(1)
+            key = m.group(2)
             try:
               return form.cleaned_data[key]
             except KeyError:
               return key
-          pattern = r'{{ *([a-zA-Z0-9-]+) *}}'
+          pattern = r'{{( |&nbsp;)*([a-zA-Z0-9-]+)( |&nbsp;)*}}'
           self.valid_content = re.sub(pattern, replacement, self.valid_content)
 
           if self.confirm_mail and self.confirm_subject and self.valid_content:
@@ -120,7 +120,7 @@ class BeGoodForm(models.Model):
               if email_fields:
                 email = form.cleaned_data[slugify(email_fields[0].label)]
                 # Ugly hack because wysiwyg-editor doesnt add linebreaks
-                msg = strip_tags(self.valid_content.replace('</p>', '</p>\r\n').replace('<br>', '<br>\r\n'))
+                msg = strip_tags(self.valid_content.replace('</p>', '</p>\r\n\r\n').replace('<br>', '<br>\r\n'))
                 mails.append((self.confirm_subject, msg, from_address, [email]))
             except:
               pass
