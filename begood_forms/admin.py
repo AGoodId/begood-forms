@@ -10,7 +10,7 @@ from django.shortcuts import render
 
 
 from begood.contrib.admin.widgets import WysiwygTextarea
-from begood_sites.admin import SiteModelAdmin, SiteVersionAdmin
+from begood_sites.admin import SiteModelAdmin
 from begood_forms.models import BeGoodForm, BeGoodFormField, BeGoodFormMessage
 
 

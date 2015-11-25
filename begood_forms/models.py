@@ -42,7 +42,7 @@ class BeGoodForm(models.Model):
   name = models.CharField(_('name'), max_length=255)
   description = models.TextField(_('description'), blank=True)
   valid_content = models.TextField(_('thank you message'), blank=True)
-  confirm_mail = models.BooleanField(_('send thank you to e-mail'), help_text=_('if there is an e-mail field the thank you message will be sent by email.'), default=False)
+  confirm_mail = models.BooleanField(_('send thank you to e-mail'), help_text=_('if there is an e-mail field the thank you message will be sent to the first defined e-mail field by email.'), default=False)
   confirm_subject = models.CharField(_('subject for thank you e-mail'), max_length=255, blank=True)
   action = models.CharField(
       _('action'), max_length=2,
@@ -115,15 +115,13 @@ class BeGoodForm(models.Model):
           self.valid_content = re.sub(pattern, replacement, self.valid_content)
 
           if self.confirm_mail and self.confirm_subject and self.valid_content:
-            try:
-              email_fields = [f.field for f in form if f.field.__class__.__name__ == 'EmailField']
-              if email_fields:
-                email = form.cleaned_data[slugify(email_fields[0].label)]
-                # Ugly hack because wysiwyg-editor doesnt add linebreaks
-                msg = strip_tags(self.valid_content.replace('</p>', '</p>\r\n\r\n').replace('<br>', '<br>\r\n'))
-                mails.append((self.confirm_subject, msg, from_address, [email]))
-            except:
-              pass
+            email_fields = [f.field for f in form if f.field.__class__.__name__ == 'EmailField']
+            if email_fields:
+              field = self.fields.filter(type='e')[0].name
+              email = form.cleaned_data[field]
+              # Ugly hack because wysiwyg-editor doesnt add linebreaks
+              msg = strip_tags(self.valid_content.replace('</p>', '</p>\r\n\r\n').replace('<br>', '<br>\r\n'))
+              mails.append((self.confirm_subject, msg, from_address, [email]))
           send_mass_mail(mails, fail_silently=True)
 
           # Store as a database entry as well
