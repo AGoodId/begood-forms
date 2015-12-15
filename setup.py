@@ -7,7 +7,7 @@ def read(fname):
 
 setup(
     name="begood-forms",
-    version="0.1.0",
+    version="0.2.0",
     description="",
     author="AGoodId",
     author_email="teknik@agoodid.com",
