@@ -5,9 +5,6 @@
   action="{% if action %}{{ action }}{% else %}#form-{{ begood_form.id }}{% endif %}">
   <span class="anchor" id="form-{{ begood_form.id }}"></span>
   {% csrf_token %}
-  <input type="text" name="abc" class="hide">
-  <input type="text" name="zxc" value="abc" class="hide">
-
   {% for field in form %}
     {% if field.is_hidden %}
       {{ field }}

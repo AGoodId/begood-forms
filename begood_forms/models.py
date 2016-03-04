@@ -75,11 +75,6 @@ class BeGoodForm(models.Model):
     form_class = self.get_form_class()
 
     if request.method == 'POST':
-      abc = request.POST.get('abc', '')
-      zxc = request.POST.get('zxc', 'abc')
-      if abc != '' or zxc != 'abc':
-        raise ValueError('botbot?')
-
       form = form_class(request.POST)
       if form.is_valid():
         if self.action == 'em':
