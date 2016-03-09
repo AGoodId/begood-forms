@@ -8,21 +8,23 @@ register = Library()
 
 
 @register.assignment_tag
-def get_form(id_or_name):
-  if not id_or_name:
+def get_form(form):
+  if not form:
     return None
+  if isinstance(form, BeGoodForm):
+    return form
   try:
-    return BeGoodForm.objects.get(id=id_or_name)
+    return BeGoodForm.objects.get(id=form)
   except:
     try:
-      return BeGoodForm.objects.get(name=id_or_name)
+      return BeGoodForm.objects.get(name=form)
     except:
       return None
 
 
 @register.assignment_tag(takes_context=True)
-def begood_form(context, id_or_name):
-  form = get_form(id_or_name)
+def begood_form(context, form):
+  form = get_form(form)
   request = context.get('request', None)
 
   if not form or not request:

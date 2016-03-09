@@ -8,6 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.template.defaultfilters import slugify
 from django.shortcuts import render
 
+from datatrans.utils import register
 
 from begood.contrib.admin.widgets import WysiwygTextarea
 from begood_sites.admin import SiteModelAdmin
@@ -94,6 +95,14 @@ class BeGoodFormMessageAdmin(SiteModelAdmin):
   readonly_fields = ['message', 'from_address', 'to_address', 'subject', 'date']
   list_per_page = 50
 
+  
+class FormTranslation(object):
+  fields = 'name description valid_content confirm_subject'.split()
+class FormFieldTranslation(object):
+  fields = ('label',)
 
+register(BeGoodForm, FormTranslation)
+register(BeGoodFormField, FormFieldTranslation)
+  
 admin.site.register(BeGoodForm, BeGoodFormAdmin)
 admin.site.register(BeGoodFormMessage, BeGoodFormMessageAdmin)
