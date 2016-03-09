@@ -7,9 +7,8 @@ from django.conf import settings
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.sites.managers import CurrentSiteManager
-from django.core.mail import send_mail, send_mass_mail
+from django.core.mail import send_mass_mail
 from django.template import loader, Context
-from django.template.defaultfilters import slugify
 from django.utils.html import strip_tags
 
 
@@ -17,7 +16,7 @@ from jsonfield import JSONField
 
 
 from begood.fields import ListField  # TODO: Break out listfield
-from begood_sites.fields import MultiSiteField, SingleSiteField
+from begood_sites.fields import MultiSiteField
 
 
 ACTION_TYPE_CHOICES = (
@@ -101,7 +100,7 @@ class BeGoodForm(models.Model):
           message = t.render(context)
 
           mails = [
-            (subject, message, from_address, self.target.split(','))
+              (subject, message, from_address, self.target.split(','))
           ]
 
           # Interpolate content from form where wanted
