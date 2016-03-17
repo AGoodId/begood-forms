@@ -1,5 +1,8 @@
 {% load hotlinks i18n %}
 
+{% if form.is_valid %}
+{{ valid_content|safe }}
+{% else %}
 {{ description|hotlinks|safe }}
 <form class="form-horizontal" method="post"
   action="{% if action %}{{ action }}{% else %}#form-{{ begood_form.id }}{% endif %}">
@@ -28,3 +31,4 @@
     </button>
   </div>
 </form>
+{% endif %}
