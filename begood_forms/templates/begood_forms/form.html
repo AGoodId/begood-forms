@@ -1,12 +1,12 @@
 {% load hotlinks i18n %}
 
+<span class="anchor" id="form-{{ begood_form.id }}"></span>
 {% if form.is_valid %}
 {{ valid_content|safe }}
 {% else %}
 {{ description|hotlinks|safe }}
 <form class="form-horizontal" method="post"
   action="{% if action %}{{ action }}{% else %}#form-{{ begood_form.id }}{% endif %}">
-  <span class="anchor" id="form-{{ begood_form.id }}"></span>
   {% csrf_token %}
   {% for field in form %}
     {% if field.is_hidden %}
