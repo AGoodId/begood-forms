@@ -11,12 +11,13 @@ from django.core.mail import send_mass_mail
 from django.template import loader, Context
 from django.utils.html import strip_tags
 from django.core.exceptions import ValidationError
+from django.utils.safestring import mark_safe
 
 
 from jsonfield import JSONField
 
 
-from begood.fields import ListField  # TODO: Break out listfield
+from begood.fields import ListField
 from begood_sites.fields import MultiSiteField
 
 
@@ -36,6 +37,7 @@ FIELD_TYPE_CHOICES = (
     ('dt', _('Date & Time')),
     ('h', _('Hidden')),
     ('pn', _('Personal number')),
+    ('he', _('Header')),
 )
 
 
@@ -223,6 +225,18 @@ class BeGoodFormField(models.Model):
           help_text=_('YYYYMMDDXXXX'),
           validators=[validate_ssn]
       )
+
+    if self.type == 'he':  # Social security number
+      self.required = False
+      class HeaderWidget(forms.Widget):
+        def render(self, name, value, attrs=None):
+          label =  self.attrs['label']
+          return mark_safe('<h2>'+label+'</h2>')
+
+      field = forms.CharField(
+          widget=HeaderWidget(attrs={'label': self.label})
+      )
+      self.label = None
 
     if field:
       field.required = self.required
