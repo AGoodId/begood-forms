@@ -52,16 +52,15 @@ class BeGoodFormAdmin(SiteModelAdmin):
     writer = csv.writer(response)
 
     # First row is the categories.
-    writer.writerow([unicode(f.label).encode('utf-8') for f in queryset.fields.all()])
+    writer.writerow(['Datum'] + [unicode(f.label).encode('utf-8') for f in queryset.fields.all()])
 
-    row = []
     for msg in queryset.messages.all():
+      row = [str(msg.date)]
       for f in queryset.fields.all():
         for test in msg.data:
-          if test['label'] == f.label:
+          if test['label'] == f.label and f.type != 'he':
             row.append(unicode(test['value']).encode('utf-8'))
       writer.writerow(row)
-      row = []
 
     return response
 
