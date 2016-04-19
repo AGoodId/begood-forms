@@ -1,34 +1,35 @@
-{% load hotlinks i18n %}
+{% load begood_forms_tags hotlinks i18n %}
 
 <span class="anchor" id="form-{{ begood_form.id }}"></span>
-{% if form.is_valid %}
-{{ valid_content|safe }}
-{% else %}
-{{ description|hotlinks|safe }}
-<form class="form-horizontal" method="post"
-  action="{% if action %}{{ action }}{% else %}#form-{{ begood_form.id }}{% endif %}">
-  {% csrf_token %}
-  {% for field in form %}
-    {% if field.is_hidden %}
-      {{ field }}
-    {% else %}
-      <div class="control-group{% if field.errors %} error{% endif %}">
-        <label class="control-label" for="{{ field.auto_id }}">{{ field.label }}</label>
-        <div class="controls">
-          {{ field }}
-          <span class="help-inline">{{ field.errors }}</span>
-          {% if field.help_text %}
-          <span class="help-block">{{ field.help_text|safe }}</span>
-          {% endif %}
+<form class="form-horizontal" method="post" action="{% if action %}{{ action }}{% else %}#form-{{ begood_form.id }}{% endif %}">
+  {% if form.is_valid %}
+    {{ valid_content|safe }}
+  {% else %}
+    {{ description|hotlinks|safe }}
+    {% csrf_token %}
+    {% for field in form %}
+      {% if field.name|is_row %}<div class="row">{% endif %}
+      {% if field.is_hidden %}
+        {{ field }}
+      {% else %}
+        <div class="control-group{% if field.errors %} error{% endif %} {{ field.name|get_field_class }}">
+          <label class="control-label" for="{{ field.auto_id }}">{{ field.label }}</label>
+          <div class="controls">
+            {{ field }}
+            <span class="help-inline">{{ field.errors }}</span>
+            {% if field.help_text %}
+            <span class="help-block">{{ field.help_text|safe }}</span>
+            {% endif %}
+          </div>
         </div>
-      </div>
-    {% endif %}
-  {% endfor %}
+      {% endif %}
+      {% if field.name|is_end_of_row %}</div>{% endif %}
+    {% endfor %}
 
-  <div class="form-actions">
-    <button type="submit" class="btn btn-primary">
-      {% trans 'Submit' %}
-    </button>
-  </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">
+        {% trans 'Submit' %}
+      </button>
+    </div>
+  {% endif %}
 </form>
-{% endif %}

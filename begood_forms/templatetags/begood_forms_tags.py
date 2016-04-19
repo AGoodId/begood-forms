@@ -1,4 +1,5 @@
 from django.template import loader, Library, RequestContext
+from django.conf import settings
 
 
 from begood_forms.models import BeGoodForm
@@ -6,6 +7,19 @@ from begood_forms.models import BeGoodForm
 
 register = Library()
 
+
+@register.filter
+def get_field_class(value):
+  return getattr(settings, 'BEGOOD_FORM_CLASSES', {}).get(value, '')
+
+
+@register.filter
+def is_row(value):
+  return value in [values[0] for values in getattr(settings, 'BEGOOD_FORM_ROWS', [])]
+
+@register.filter
+def is_end_of_row(value):
+  return value in [values[1] for values in getattr(settings, 'BEGOOD_FORM_ROWS', [])]
 
 @register.assignment_tag
 def get_form(form):
