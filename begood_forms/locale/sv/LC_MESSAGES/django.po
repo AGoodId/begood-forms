@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-11-25 16:22+0100\n"
+"POT-Creation-Date: 2016-04-18 13:23+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,31 +18,31 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: admin.py:27
+#: admin.py:28
 msgid "Confirmation"
 msgstr "Bekräftelse"
 
-#: admin.py:28
+#: admin.py:29
 msgid "Advanced"
 msgstr "Avancerat"
 
-#: admin.py:38
+#: admin.py:39
 msgid "Get a list of all answers"
 msgstr "Hämta en lista med alla svar"
 
-#: admin.py:45
+#: admin.py:46
 msgid "You can only export 1 form at a time."
 msgstr "Det går endast att exportera 1 formulär åt gången."
 
-#: admin.py:68
+#: admin.py:69
 msgid "Export as CSV"
 msgstr "Exportera som CSV"
 
-#: admin.py:73 models.py:214
+#: admin.py:74 models.py:252
 msgid "messages"
 msgstr "meddelanden"
 
-#: admin.py:74
+#: admin.py:75
 msgid "Messages"
 msgstr "Meddelanden"
 
@@ -90,107 +90,127 @@ msgstr "Datum & tid"
 msgid "Hidden"
 msgstr "Gömd"
 
-#: models.py:42 models.py:143
+#: models.py:38
+msgid "Personal number"
+msgstr "Personnummer"
+
+#: models.py:60
+msgid "Must be 12 numbers long"
+msgstr "Personnumret måste vara 12 nummer långt (ÅÅÅÅMMDDXXXX)"
+
+#: models.py:67
+msgid "Month or day seems to be wrong"
+msgstr "Felaktig månad eller dag"
+
+#: models.py:70
+msgid "Incorrect SSN"
+msgstr "Felaktigt personnummer"
+
+#: models.py:74 models.py:175
 msgid "name"
 msgstr "namn"
 
-#: models.py:43
+#: models.py:75
 msgid "description"
 msgstr "beskrivning"
 
-#: models.py:44
+#: models.py:76
 msgid "thank you message"
 msgstr "tackmeddelande"
 
-#: models.py:45
+#: models.py:77
 msgid "send thank you to e-mail"
 msgstr "Skicka tackbrev till denna e-post"
 
-#: models.py:45
+#: models.py:77
 msgid ""
 "if there is an e-mail field the thank you message will be sent to the first "
 "defined e-mail field by email."
 msgstr ""
-"Ifall det finns ett e-postfält kommer tack-meddelandet skickas med mail"
-"till dett första definierade e-postfältet"
+"Ifall det finns ett e-postfält kommer tack-meddelandet skickas med mailtill "
+"dett första definierade e-postfältet"
 
-#: models.py:46
+#: models.py:78
 msgid "subject for thank you e-mail"
 msgstr "rubrik till tack-mailet"
 
-#: models.py:48
+#: models.py:80
 msgid "action"
 msgstr "åtgärd"
 
-#: models.py:51
+#: models.py:83
 msgid "target"
 msgstr "mottagare"
 
-#: models.py:52
+#: models.py:84
 msgid "The email addresses to send to, or the website to post to."
 msgstr "E-postadresser eller hemsida att skicka till."
 
-#: models.py:60 models.py:141 models.py:198
+#: models.py:92 models.py:173 models.py:236
 msgid "form"
 msgstr "formulär"
 
-#: models.py:61
+#: models.py:93
 msgid "forms"
 msgstr "formulär"
 
-#: models.py:86
+#: models.py:118
 msgid "Submitted form: "
 msgstr "Skickat formulär: "
 
-#: models.py:142
+#: models.py:174
 msgid "label"
 msgstr "beteckning"
 
-#: models.py:144
+#: models.py:176
 msgid "initial value"
 msgstr "startvärde"
 
-#: models.py:145
+#: models.py:177
 msgid "required"
 msgstr "måste fyllas i"
 
-#: models.py:147
+#: models.py:179
 msgid "type"
 msgstr "typ"
 
-#: models.py:149
+#: models.py:181
 msgid "choices"
 msgstr "alternativ"
 
-#: models.py:150
+#: models.py:182
 msgid "order"
 msgstr "ordning"
 
-#: models.py:154
+#: models.py:186
 msgid "field"
 msgstr "fält"
 
-#: models.py:155
+#: models.py:187
 msgid "fields"
 msgstr "fält"
 
-#: models.py:199
+#: models.py:223
+msgid "YYYYMMDDXXXX"
+msgstr "Format: ÅÅÅÅMMDDXXXX"
+
+#: models.py:237
 msgid "subject"
 msgstr "ämne"
 
-#: models.py:200
+#: models.py:238
 msgid "from"
 msgstr "från"
 
-#: models.py:201
+#: models.py:239
 msgid "to"
 msgstr "till"
 
-#: models.py:202 models.py:213
+#: models.py:240 models.py:251
 msgid "message"
 msgstr "meddelande"
 
-#: models.py:203
+#: models.py:241
 msgid "date"
 msgstr "datum"
 
@@ -198,6 +218,6 @@ msgstr "datum"
 msgid "Sent"
 msgstr "Skickat"
 
-#: templates/begood_forms/form.html:28
+#: templates/begood_forms/form.html:30
 msgid "Submit"
 msgstr "Skicka"

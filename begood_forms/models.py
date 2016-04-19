@@ -10,12 +10,14 @@ from django.contrib.sites.managers import CurrentSiteManager
 from django.core.mail import send_mass_mail
 from django.template import loader, Context
 from django.utils.html import strip_tags
+from django.core.exceptions import ValidationError
+from django.utils.safestring import mark_safe
 
 
 from jsonfield import JSONField
 
 
-from begood.fields import ListField  # TODO: Break out listfield
+from begood.fields import ListField
 from begood_sites.fields import MultiSiteField
 
 
@@ -34,7 +36,40 @@ FIELD_TYPE_CHOICES = (
     ('tm', _('Time')),
     ('dt', _('Date & Time')),
     ('h', _('Hidden')),
+    ('pn', _('Personal number')),
+    ('he', _('Header')),
 )
+
+
+def validate_ssn(value):
+  def dubbla(k):
+      k = 2 * k
+      if k > 9:
+          k -= 9
+      return k
+
+  def check(pnr):
+      sum = 0
+      for i in [1, 3, 5, 7, 9]:
+          sum += int(pnr[i])
+      for i in [0, 2, 4, 6, 8]:
+          sum += dubbla(int(pnr[i]))
+      return sum % 10 == 0
+
+  ssn = value
+  if len(value) != 12:
+    raise ValidationError(
+        _("Must be 12 numbers long"))
+
+  day = int(value[6:8])
+  month = int(value[4:6])
+
+  if month < 1 or month > 12 or day < 1 or day > 31:
+    raise ValidationError(
+        _("Month or day seems to be wrong"))
+
+  if not check(ssn[2:]):
+    raise ValidationError(_("Incorrect SSN"))
 
 
 class BeGoodForm(models.Model):
@@ -184,6 +219,24 @@ class BeGoodFormField(models.Model):
 
     if self.type == 'h':  # Hidden
       field = forms.CharField(widget=forms.widgets.HiddenInput())
+
+    if self.type == 'pn':  # Social security number
+      field = forms.CharField(
+          help_text=_('YYYYMMDDXXXX'),
+          validators=[validate_ssn]
+      )
+
+    if self.type == 'he':  # Social security number
+      self.required = False
+      class HeaderWidget(forms.Widget):
+        def render(self, name, value, attrs=None):
+          label =  self.attrs['label']
+          return mark_safe('<h2>'+label+'</h2>')
+
+      field = forms.CharField(
+          widget=HeaderWidget(attrs={'label': self.label})
+      )
+      self.label = None
 
     if field:
       field.required = self.required
