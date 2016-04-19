@@ -12,7 +12,7 @@
       {% if field.is_hidden %}
         {{ field }}
       {% else %}
-        <div class="{{ field.name|get_field_class }}">
+        <div class="{% if field.field.required %}required{% endif %} {{ field.name|get_field_class }}">
           {% bootstrap_field field %}
         </div>
       {% endif %}
