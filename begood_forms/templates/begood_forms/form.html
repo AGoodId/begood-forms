@@ -1,7 +1,7 @@
-{% load begood_forms_tags hotlinks i18n %}
+{% load begood_forms_tags hotlinks i18n bootstrap3 %}
 
 <span class="anchor" id="form-{{ begood_form.id }}"></span>
-<form class="form-horizontal" method="post" action="{% if action %}{{ action }}{% else %}#form-{{ begood_form.id }}{% endif %}">
+<form class="form-{{begood_form.id}}" method="post" action="{% if action %}{{ action }}{% else %}#form-{{ begood_form.id }}{% endif %}">
   {% if form.is_valid %}
     {{ valid_content|safe }}
   {% else %}
@@ -12,15 +12,8 @@
       {% if field.is_hidden %}
         {{ field }}
       {% else %}
-        <div class="control-group{% if field.errors %} error{% endif %} {{ field.name|get_field_class }}">
-          <label class="control-label" for="{{ field.auto_id }}">{{ field.label }}</label>
-          <div class="controls">
-            {{ field }}
-            <span class="help-inline">{{ field.errors }}</span>
-            {% if field.help_text %}
-            <span class="help-block">{{ field.help_text|safe }}</span>
-            {% endif %}
-          </div>
+        <div class="{{ field.name|get_field_class }}">
+          {% bootstrap_field field %}
         </div>
       {% endif %}
       {% if field.name|is_end_of_row %}</div>{% endif %}

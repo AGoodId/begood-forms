@@ -21,7 +21,7 @@ setup(
     ],
     include_package_data=True,
     long_description=read("README.markdown"),
-    install_requires=['django-datatrans'],
+    install_requires=['django-datatrans', 'django-bootstrap3'],
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Framework :: Django",
