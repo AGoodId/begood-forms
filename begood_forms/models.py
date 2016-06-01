@@ -121,6 +121,8 @@ class BeGoodForm(models.Model):
 
           if 'from' in form.cleaned_data:
             from_address = form.cleaned_data['from']
+          elif '@' in self.target:
+            from_address = self.target.split(',')[0]
           else:
             from_address = settings.DEFAULT_FROM_EMAIL
 
