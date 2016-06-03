@@ -7,7 +7,7 @@ from django.conf import settings
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.sites.managers import CurrentSiteManager
-from django.core.mail import send_mass_mail
+from django.core.mail import get_connection, EmailMessage
 from django.template import loader, Context
 from django.utils.html import strip_tags
 from django.core.exceptions import ValidationError
@@ -136,10 +136,6 @@ class BeGoodForm(models.Model):
           t = loader.get_template('begood_forms/email.txt')
           message = t.render(context)
 
-          mails = [
-              (subject, message, from_address, self.target.split(','))
-          ]
-
           # Interpolate content from form where wanted
           def replacement(m):
             key = m.group(2)
@@ -150,6 +146,7 @@ class BeGoodForm(models.Model):
           pattern = r'{{( |&nbsp;)*([a-zA-Z0-9-]+)( |&nbsp;)*}}'
           self.valid_content = re.sub(pattern, replacement, self.valid_content)
 
+          mails = None
           if self.confirm_mail and self.confirm_subject and self.valid_content:
             email_fields = [f.field for f in form if f.field.__class__.__name__ == 'EmailField']
             if email_fields:
@@ -157,8 +154,41 @@ class BeGoodForm(models.Model):
               email = form.cleaned_data[field]
               # Ugly hack because wysiwyg-editor doesnt add linebreaks
               msg = strip_tags(self.valid_content.replace('</p>', '</p>\r\n\r\n').replace('<br>', '<br>\r\n'))
-              mails.append((self.confirm_subject, msg, from_address, [email]))
-          send_mass_mail(mails, fail_silently=True)
+              # Overwrite the first message with one with a correct email specified
+              mails = [EmailMessage(
+                subject,
+                message,
+                email,
+                self.target.split(','),
+                headers={
+                  'Reply-To': email,
+                  'Sender': settings.DEFAULT_FROM_EMAIL,
+                },
+              ), EmailMessage(
+                self.confirm_subject,
+                msg,
+                from_address,
+                [email],
+                headers={
+                  'Reply-To': from_address,
+                  'Sender': settings.DEFAULT_FROM_EMAIL,
+                },
+              )]
+
+          if not mails:
+            mails = [EmailMessage(
+              subject,
+              message,
+              from_address,
+              self.target.split(','),
+              headers={
+                'Reply-To': from_address,
+                'Sender': settings.DEFAULT_FROM_EMAIL,
+              },
+            )]
+
+          conn = get_connection(fail_silently=True)
+          conn.send_messages(mails)
 
           # Store as a database entry as well
           form_message = BeGoodFormMessage(
