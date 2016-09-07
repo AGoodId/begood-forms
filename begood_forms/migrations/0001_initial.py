@@ -1,125 +1,83 @@
-# encoding: utf-8
-import datetime
-from south.db import db
-from south.v2 import SchemaMigration
-from django.db import models
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 
-class Migration(SchemaMigration):
-
-    def forwards(self, orm):
-        
-        # Adding model 'BeGoodForm'
-        db.create_table(u'begood_forms_begoodform', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('description', self.gf('django.db.models.fields.TextField')(blank=True)),
-            ('valid_content', self.gf('django.db.models.fields.TextField')(blank=True)),
-            ('action', self.gf('django.db.models.fields.CharField')(default='em', max_length=2)),
-            ('target', self.gf('django.db.models.fields.TextField')()),
-        ))
-        db.send_create_signal(u'begood_forms', ['BeGoodForm'])
-
-        # Adding M2M table for field sites on 'BeGoodForm'
-        db.create_table(u'begood_forms_begoodform_sites', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('begoodform', models.ForeignKey(orm[u'begood_forms.begoodform'], null=False)),
-            ('site', models.ForeignKey(orm[u'sites.site'], null=False))
-        ))
-        db.create_unique(u'begood_forms_begoodform_sites', ['begoodform_id', 'site_id'])
-
-        # Adding model 'BeGoodFormField'
-        db.create_table(u'begood_forms_begoodformfield', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('form', self.gf('django.db.models.fields.related.ForeignKey')(related_name='fields', to=orm['begood_forms.BeGoodForm'])),
-            ('label', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('name', self.gf('django.db.models.fields.SlugField')(max_length=100, db_index=True)),
-            ('initial', self.gf('django.db.models.fields.TextField')(blank=True)),
-            ('required', self.gf('django.db.models.fields.BooleanField')(default=True)),
-            ('type', self.gf('django.db.models.fields.CharField')(default='t', max_length=2)),
-            ('choices', self.gf('begood.fields.ListField')(blank=True)),
-            ('order', self.gf('django.db.models.fields.PositiveIntegerField')()),
-        ))
-        db.send_create_signal(u'begood_forms', ['BeGoodFormField'])
-
-        # Adding model 'BeGoodFormMessage'
-        db.create_table(u'begood_forms_begoodformmessage', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('form', self.gf('django.db.models.fields.related.ForeignKey')(related_name='messages', to=orm['begood_forms.BeGoodForm'])),
-            ('subject', self.gf('django.db.models.fields.CharField')(max_length=2047)),
-            ('from_address', self.gf('django.db.models.fields.CharField')(max_length=2047)),
-            ('to_address', self.gf('django.db.models.fields.CharField')(max_length=2047)),
-            ('message', self.gf('django.db.models.fields.TextField')(blank=True)),
-            ('date', self.gf('django.db.models.fields.DateTimeField')()),
-        ))
-        db.send_create_signal(u'begood_forms', ['BeGoodFormMessage'])
-
-        # Adding M2M table for field sites on 'BeGoodFormMessage'
-        db.create_table(u'begood_forms_begoodformmessage_sites', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('begoodformmessage', models.ForeignKey(orm[u'begood_forms.begoodformmessage'], null=False)),
-            ('site', models.ForeignKey(orm[u'sites.site'], null=False))
-        ))
-        db.create_unique(u'begood_forms_begoodformmessage_sites', ['begoodformmessage_id', 'site_id'])
+from django.db import migrations, models
+import django.db.models.manager
+import jsonfield.fields
+import begood.fields
+import begood_sites.fields
+import django.contrib.sites.managers
 
 
-    def backwards(self, orm):
-        
-        # Deleting model 'BeGoodForm'
-        db.delete_table(u'begood_forms_begoodform')
+class Migration(migrations.Migration):
 
-        # Removing M2M table for field sites on 'BeGoodForm'
-        db.delete_table('begood_forms_begoodform_sites')
+    dependencies = [
+        ('sites', '0001_initial'),
+    ]
 
-        # Deleting model 'BeGoodFormField'
-        db.delete_table(u'begood_forms_begoodformfield')
-
-        # Deleting model 'BeGoodFormMessage'
-        db.delete_table(u'begood_forms_begoodformmessage')
-
-        # Removing M2M table for field sites on 'BeGoodFormMessage'
-        db.delete_table('begood_forms_begoodformmessage_sites')
-
-
-    models = {
-        u'begood_forms.begoodform': {
-            'Meta': {'object_name': 'BeGoodForm'},
-            'action': ('django.db.models.fields.CharField', [], {'default': "'em'", 'max_length': '2'}),
-            'description': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'sites': ('begood_sites.fields.MultiSiteField', [], {'to': u"orm['sites.Site']", 'symmetrical': 'False'}),
-            'target': ('django.db.models.fields.TextField', [], {}),
-            'valid_content': ('django.db.models.fields.TextField', [], {'blank': 'True'})
-        },
-        u'begood_forms.begoodformfield': {
-            'Meta': {'ordering': "['order']", 'object_name': 'BeGoodFormField'},
-            'choices': ('begood.fields.ListField', [], {'blank': 'True'}),
-            'form': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'fields'", 'to': u"orm['begood_forms.BeGoodForm']"}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'initial': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'label': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'name': ('django.db.models.fields.SlugField', [], {'max_length': '100', 'db_index': 'True'}),
-            'order': ('django.db.models.fields.PositiveIntegerField', [], {}),
-            'required': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
-            'type': ('django.db.models.fields.CharField', [], {'default': "'t'", 'max_length': '2'})
-        },
-        u'begood_forms.begoodformmessage': {
-            'Meta': {'ordering': "['date']", 'object_name': 'BeGoodFormMessage'},
-            'date': ('django.db.models.fields.DateTimeField', [], {}),
-            'form': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'messages'", 'to': u"orm['begood_forms.BeGoodForm']"}),
-            'from_address': ('django.db.models.fields.CharField', [], {'max_length': '2047'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'message': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'sites': ('begood_sites.fields.MultiSiteField', [], {'to': u"orm['sites.Site']", 'symmetrical': 'False'}),
-            'subject': ('django.db.models.fields.CharField', [], {'max_length': '2047'}),
-            'to_address': ('django.db.models.fields.CharField', [], {'max_length': '2047'})
-        },
-        u'sites.site': {
-            'Meta': {'ordering': "('domain',)", 'object_name': 'Site', 'db_table': "'django_site'"},
-            'domain': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50'})
-        }
-    }
-
-    complete_apps = ['begood_forms']
+    operations = [
+        migrations.CreateModel(
+            name='BeGoodForm',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=255, verbose_name='name')),
+                ('description', models.TextField(verbose_name='description', blank=True)),
+                ('valid_content', models.TextField(verbose_name='thank you message', blank=True)),
+                ('confirm_mail', models.BooleanField(default=False, help_text='if there is an e-mail field the thank you message will be sent to the first defined e-mail field by email.', verbose_name='send thank you to e-mail')),
+                ('confirm_subject', models.CharField(max_length=255, verbose_name='subject for thank you e-mail', blank=True)),
+                ('action', models.CharField(default=b'em', max_length=2, verbose_name='action', choices=[(b'em', 'Send email'), (b'ex', 'Post to website')])),
+                ('target', models.TextField(help_text='The email addresses to send to, or the website to post to.', verbose_name='target')),
+                ('sites', begood_sites.fields.MultiSiteField(to='sites.Site')),
+            ],
+            options={
+                'verbose_name': 'form',
+                'verbose_name_plural': 'forms',
+            },
+            managers=[
+                ('objects', django.db.models.manager.Manager()),
+                ('on_site', django.contrib.sites.managers.CurrentSiteManager()),
+            ],
+        ),
+        migrations.CreateModel(
+            name='BeGoodFormField',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('label', models.CharField(max_length=255, verbose_name='label')),
+                ('name', models.SlugField(max_length=100, verbose_name='name')),
+                ('initial', models.TextField(verbose_name='initial value', blank=True)),
+                ('required', models.BooleanField(default=True, verbose_name='required')),
+                ('type', models.CharField(default=b't', max_length=2, verbose_name='type', choices=[(b't', 'Text'), (b'ta', 'Text Area'), (b'e', 'Email'), (b'n', 'Number'), (b'c', 'Choices'), (b'd', 'Date'), (b'tm', 'Time'), (b'dt', 'Date & Time'), (b'h', 'Hidden'), (b'pn', 'Personal number'), (b'he', 'Header')])),
+                ('choices', begood.fields.ListField(verbose_name='choices', blank=True)),
+                ('order', models.PositiveIntegerField(verbose_name='order')),
+                ('form', models.ForeignKey(related_name='fields', verbose_name='form', to='begood_forms.BeGoodForm')),
+            ],
+            options={
+                'ordering': ['order'],
+                'verbose_name': 'field',
+                'verbose_name_plural': 'fields',
+            },
+        ),
+        migrations.CreateModel(
+            name='BeGoodFormMessage',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('subject', models.CharField(max_length=2047, verbose_name='subject')),
+                ('from_address', models.CharField(max_length=2047, verbose_name='from')),
+                ('to_address', models.CharField(max_length=2047, verbose_name='to')),
+                ('message', models.TextField(verbose_name='message', blank=True)),
+                ('date', models.DateTimeField(verbose_name='date')),
+                ('data', jsonfield.fields.JSONField(default=dict)),
+                ('form', models.ForeignKey(related_name='messages', verbose_name='form', to='begood_forms.BeGoodForm')),
+                ('sites', begood_sites.fields.MultiSiteField(to='sites.Site')),
+            ],
+            options={
+                'ordering': ['date'],
+                'verbose_name': 'message',
+                'verbose_name_plural': 'messages',
+            },
+            managers=[
+                ('objects', django.db.models.manager.Manager()),
+                ('on_site', django.contrib.sites.managers.CurrentSiteManager()),
+            ],
+        ),
+    ]
