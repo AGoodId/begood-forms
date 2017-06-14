@@ -34,6 +34,7 @@ FIELD_TYPE_CHOICES = (
     ('c', _('Choices')),
     ('d', _('Date')),
     ('tm', _('Time')),
+    ('tq', _('CourseExam')),
     ('dt', _('Date & Time')),
     ('h', _('Hidden')),
     ('pn', _('Personal number')),
@@ -239,7 +240,18 @@ class BeGoodFormField(models.Model):
 
     if self.type == 'c':  # Choices
       field = forms.ChoiceField(choices=[(c, c) for c in self.choices])
+        if self.type == 'tq':  # Test Choices
+      choices = []
+      correct = ""
+      for tq in self.choices:
+        tq=tq.split(u';;')
+        choices.append((tq[0],tq[0]))
+        if(tq[1] == "True"):
+          correct = tq[0]
 
+      field = RadioChoiceField(choices)
+      field.correct = correct
+        
     if self.type == 'd':  # Date
       field = forms.DateField()
 
