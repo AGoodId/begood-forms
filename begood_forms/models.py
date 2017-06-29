@@ -250,7 +250,7 @@ class BeGoodFormField(models.Model):
         if(tq[1] == "True"):
           correct = tq[0]
 
-      field = RadioChoiceField(choices)
+      field = forms.RadioChoiceField(choices)
       field.correct = correct
         
     if self.type == 'd':  # Date
