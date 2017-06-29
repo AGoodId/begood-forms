@@ -240,7 +240,8 @@ class BeGoodFormField(models.Model):
 
     if self.type == 'c':  # Choices
       field = forms.ChoiceField(choices=[(c, c) for c in self.choices])
-        if self.type == 'tq':  # Test Choices
+    
+    if self.type == 'tq':  # Test Choices
       choices = []
       correct = ""
       for tq in self.choices:
