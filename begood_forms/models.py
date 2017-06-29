@@ -18,7 +18,8 @@ from jsonfield import JSONField
 
 
 from begood.fields import ListField
-from begood_sites.fields import MultiSiteField
+from begood_sites.fields import MultiSiteField, RadioChoiceField
+
 
 
 ACTION_TYPE_CHOICES = (
@@ -250,7 +251,7 @@ class BeGoodFormField(models.Model):
         if(tq[1] == "True"):
           correct = tq[0]
 
-      field = forms.RadioChoiceField(choices)
+      field = RadioChoiceField(choices)
       field.correct = correct
         
     if self.type == 'd':  # Date
