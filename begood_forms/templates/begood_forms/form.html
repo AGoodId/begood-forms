@@ -3,7 +3,15 @@
 <span class="anchor" id="form-{{ begood_form.id }}"></span>
 <form class="form-{{begood_form.id}}" method="post" action="{% if action %}{{ action }}{% else %}#form-{{ begood_form.id }}{% endif %}">
   {% if form.is_valid %}
-    {{ valid_content|safe }}
+      {{ valid_content|safe }}
+  {% elif not begood_form.is_open %}
+    {% if begood_form.is_closed %}
+      {{ begood_form.name }} stängde {{ begood_form.end_date|date:'d-m-Y H:i' }}
+    {% elif begood_form.to_open %}
+      {{ begood_form.name }} öppnar {{ begood_form.start_date|date:'d-m-Y H:i' }}
+    {% else %}
+      {{ begood_form.name }} har inte öppnat ännu.
+    {% endif %}
   {% else %}
     {{ description|hotlinks|safe }}
     {% csrf_token %}

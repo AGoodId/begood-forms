@@ -24,7 +24,7 @@ class BeGoodFormFieldInlineAdmin(admin.StackedInline):
 
 class BeGoodFormAdmin(SiteModelAdmin):
   fieldsets = [
-      (None, {'fields': ['name', 'description', 'action', 'target']}),
+      (None, {'fields': ['name', 'description', 'action', 'target', 'start_date', 'end_date']}),
       (_('Confirmation'), {'fields': ['valid_content', 'confirm_mail', 'confirm_subject']}),
       (_('Advanced'), {'fields': ['sites'], 'classes': ['collapse']}),
   ]
@@ -38,7 +38,7 @@ class BeGoodFormAdmin(SiteModelAdmin):
     return render(request, 'begood_forms/form_message_list.html', context)
   generate_list.short_description = _("Get a list of all answers")
 
-  def generate_list(modeladmin, request, queryset):
+  def export_csv(modeladmin, request, queryset):
     import csv
     from django.http import HttpResponse
 
@@ -63,9 +63,7 @@ class BeGoodFormAdmin(SiteModelAdmin):
       writer.writerow(row)
 
     return response
-
-
-  generate_list.short_description = _("Export as CSV")
+  export_csv.short_description = _("Export as CSV")
 
   def messages_links(self, obj):
     count = BeGoodFormMessage.objects.filter(form_id=obj.id).count()

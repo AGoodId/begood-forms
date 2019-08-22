@@ -87,6 +87,9 @@ class BeGoodForm(models.Model):
       _('target'),
       help_text=_("The email addresses to send to, or the website to post to."))
 
+  start_date = models.DateTimeField(blank=True, null=True)
+  end_date = models.DateTimeField(blank=True, null=True)
+
   sites = MultiSiteField()
 
   objects = models.Manager()
@@ -108,10 +111,28 @@ class BeGoodForm(models.Model):
     )
     return type("GeneratedBeGoodForm", (forms.Form,), attrs)
 
+  def is_open(self):
+    if self.end_date:
+      return self.start_date < datetime.now() and datetime.now() < self.end_date
+    return self.start_date < datetime.now()
+
+  def to_open(self):
+    if self.start_date:
+      return datetime.now() < self.start_date
+    return False
+
+  def is_closed(self):
+    return self.end_date < datetime.now()
+
   def process(self, request):
     form_class = self.get_form_class()
 
     if request.method == 'POST':
+
+      if not self.is_open():
+        form = form_class()
+        return form
+
       form = form_class(request.POST)
       if form.is_valid():
         if self.action == 'em':
@@ -275,7 +296,7 @@ class BeGoodFormField(models.Model):
           validators=[validate_ssn]
       )
 
-    if self.type == 'he':  # Social security number
+    if self.type == 'he':  # Header
       self.required = False
       class HeaderWidget(forms.Widget):
         def render(self, name, value, attrs=None):
@@ -294,6 +315,22 @@ class BeGoodFormField(models.Model):
         field.initial = self.initial
       return field
 
+
+class BeGoodFormFileField(models.Model):
+  form = models.ForeignKey(BeGoodForm, verbose_name=_('form'), related_name="filefields")
+  label = models.CharField(_('label'), max_length=255)
+  name = models.SlugField(_('name'), max_length=100)
+  required = models.BooleanField(_('required'), default=True)
+  order = models.PositiveIntegerField(_('order'))
+  file = models.FileField(upload_to='formfiles', max_length=255, blank=True, null=True)
+
+  class Meta:
+    ordering = ['order']
+    verbose_name = _('filefield')
+    verbose_name_plural = _('filefields')
+
+  def __unicode__(self):
+    return unicode(self.form) + ' - ' + self.label
 
 class BeGoodFormMessage(models.Model):
   form = models.ForeignKey(BeGoodForm, verbose_name=_('form'), related_name="messages")
