@@ -1,7 +1,9 @@
 {% load begood_forms_tags hotlinks i18n bootstrap3 %}
 
 <span class="anchor" id="form-{{ begood_form.id }}"></span>
-<form class="form-{{begood_form.id}}" method="post" action="{% if action %}{{ action }}{% else %}#form-{{ begood_form.id }}{% endif %}">
+<form class="form-{{begood_form.id}}" method="post"
+  action="{% if action %}{{ action }}{% else %}#form-{{ begood_form.id }}{% endif %}"
+  {% if begood_form.have_filefields %} enctype="multipart/form-data"{% endif %} >
   {% if form.is_valid %}
       {{ valid_content|safe }}
   {% elif not begood_form.is_open %}

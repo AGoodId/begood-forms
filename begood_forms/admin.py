@@ -12,13 +12,22 @@ from datatrans.utils import register
 
 from begood.contrib.admin.widgets import WysiwygTextarea
 from begood_sites.admin import SiteModelAdmin
-from begood_forms.models import BeGoodForm, BeGoodFormField, BeGoodFormMessage
+from begood_forms.models import (
+  BeGoodForm, BeGoodFormField, BeGoodFormMessage,
+  BeGoodFormFileField, BeGoodFormMessageFile)
 
 
 class BeGoodFormFieldInlineAdmin(admin.StackedInline):
   model = BeGoodFormField
   prepopulated_fields = {'name': ('label',)}
   fields = ['label', 'name', 'type', 'choices', 'initial', 'required', 'order']
+  extra = 0
+
+
+class BeGoodFormFileFieldInlineAdmin(admin.StackedInline):
+  model = BeGoodFormFileField
+  prepopulated_fields = {'name': ('label',)}
+  fields = ['label', 'name', 'required', 'order']
   extra = 0
 
 
@@ -31,7 +40,7 @@ class BeGoodFormAdmin(SiteModelAdmin):
   list_display = ['name', 'messages_links']
   search_fields = ['name']
   actions = ['generate_list', 'export_csv']
-  inlines = [BeGoodFormFieldInlineAdmin, ]
+  inlines = [BeGoodFormFieldInlineAdmin, BeGoodFormFileFieldInlineAdmin, ]
 
   def generate_list(modeladmin, request, queryset):
     context = {'forms': queryset}
@@ -83,6 +92,12 @@ class BeGoodFormAdmin(SiteModelAdmin):
     return super(BeGoodFormAdmin, self).formfield_for_dbfield(field, **kwargs)
 
 
+class BeGoodFormMessageFileInlineAdmin(admin.StackedInline):
+  model = BeGoodFormMessageFile
+  fields = ['file', 'form_filefield']
+  readonly_fields = ['file', 'form_filefield']
+  extra = 0
+
 class BeGoodFormMessageAdmin(SiteModelAdmin):
   list_display = ['form', 'from_address', 'to_address', 'date', ]
   list_display_links = ('from_address', 'to_address', 'date', )
@@ -91,6 +106,7 @@ class BeGoodFormMessageAdmin(SiteModelAdmin):
   fields = ['date', 'from_address', 'to_address', 'subject', 'message']
   readonly_fields = ['message', 'from_address', 'to_address', 'subject', 'date']
   list_per_page = 50
+  inlines = [BeGoodFormMessageFileInlineAdmin, ]
 
   
 class FormTranslation(object):

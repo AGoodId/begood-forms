@@ -12,6 +12,7 @@ from django.template import loader, Context
 from django.utils.html import strip_tags
 from django.core.exceptions import ValidationError
 from django.utils.safestring import mark_safe
+from django.utils.text import slugify
 
 
 from jsonfield import JSONField
@@ -109,6 +110,10 @@ class BeGoodForm(models.Model):
     attrs = dict(
         (field.name, field.get_form_field()) for field in self.fields.all()
     )
+    fileattrs = dict(
+      (filefield.name, filefield.get_form_field()) for filefield in self.filefields.all()
+    )
+    attrs.update(fileattrs)
     return type("GeneratedBeGoodForm", (forms.Form,), attrs)
 
   def is_open(self):
@@ -124,6 +129,9 @@ class BeGoodForm(models.Model):
   def is_closed(self):
     return self.end_date < datetime.now()
 
+  def have_filefields(self):
+    return self.filefields.exists()
+
   def process(self, request):
     form_class = self.get_form_class()
 
@@ -133,7 +141,7 @@ class BeGoodForm(models.Model):
         form = form_class()
         return form
 
-      form = form_class(request.POST)
+      form = form_class(request.POST, request.FILES)
       if form.is_valid():
         if self.action == 'em':
           # Construct an email and send it
@@ -150,7 +158,7 @@ class BeGoodForm(models.Model):
             from_address = settings.DEFAULT_FROM_EMAIL
 
           # Create message from a template
-          fields = [{'label': f.label, 'value': form.cleaned_data[f.name]} for f in form]
+          fields = [{'label': f.label, 'value': form.cleaned_data[f.name]} for f in form if f.field.__class__.__name__ != 'FileField']
           send_date = datetime.now()
           context = Context({
               'fields': fields,
@@ -169,6 +177,12 @@ class BeGoodForm(models.Model):
           pattern = r'{{( |&nbsp;)*([a-zA-Z0-9-]+)( |&nbsp;)*}}'
           self.valid_content = re.sub(pattern, replacement, self.valid_content)
 
+          filefields = [f.field for f in form if f.field.__class__.__name__ == 'FileField']
+
+          file_atts = []
+          for f in filefields:
+            file_atts.append(request.FILES[slugify(f.label)])
+
           mails = None
           if self.confirm_mail and self.confirm_subject and self.valid_content:
             email_fields = [f.field for f in form if f.field.__class__.__name__ == 'EmailField']
@@ -178,7 +192,7 @@ class BeGoodForm(models.Model):
               # Ugly hack because wysiwyg-editor doesnt add linebreaks
               msg = strip_tags(self.valid_content.replace('</p>', '</p>\r\n\r\n').replace('<br>', '<br>\r\n'))
               # Overwrite the first message with one with a correct email specified
-              mails = [EmailMessage(
+              mail1 = EmailMessage(
                 subject,
                 message,
                 email,
@@ -187,7 +201,14 @@ class BeGoodForm(models.Model):
                   'Reply-To': email,
                   'Sender': settings.DEFAULT_FROM_EMAIL,
                 },
-              ), EmailMessage(
+              )
+              try:
+                for att in file_atts:
+                  mail1.attach(filename=att._name, content=att.read())
+              except Exception as e:
+                print('BeGoodForm email attachment error: %s' % e)
+                raise
+              mail2 = EmailMessage(
                 self.confirm_subject,
                 msg,
                 from_address,
@@ -196,10 +217,10 @@ class BeGoodForm(models.Model):
                   'Reply-To': from_address,
                   'Sender': settings.DEFAULT_FROM_EMAIL,
                 },
-              )]
-
+              )
+              mails = [mail1, mail2]
           if not mails:
-            mails = [EmailMessage(
+            mail1 = EmailMessage(
               subject,
               message,
               from_address,
@@ -208,7 +229,14 @@ class BeGoodForm(models.Model):
                 'Reply-To': from_address,
                 'Sender': settings.DEFAULT_FROM_EMAIL,
               },
-            )]
+            )
+            try:
+              for att in file_atts:
+                mail1.attach(filename=att._name, content=att.read())
+            except Exception as e:
+              print('BeGoodForm email attachment error: %s' % e)
+              raise
+            mails = [mail1]
           
           fail_silently = getattr(settings, "EMAIL_FAIL_SILENTLY", True)
           conn = get_connection(fail_silently=fail_silently)
@@ -223,6 +251,14 @@ class BeGoodForm(models.Model):
           )
           form_message.save()
           form_message.sites.add(*self.sites.all().values_list('id', flat=True))
+          for f in filefields:
+            this_file = request.FILES[slugify(f.label)]
+            form_filefield = BeGoodFormFileField.objects.get(form=self, label=f.label)
+            message_file = BeGoodFormMessageFile(
+              form_message=form_message,
+              form_filefield=form_filefield,
+              file=this_file)
+            message_file.save()
     else:
       form = form_class()
 
@@ -322,7 +358,6 @@ class BeGoodFormFileField(models.Model):
   name = models.SlugField(_('name'), max_length=100)
   required = models.BooleanField(_('required'), default=True)
   order = models.PositiveIntegerField(_('order'))
-  file = models.FileField(upload_to='formfiles', max_length=255, blank=True, null=True)
 
   class Meta:
     ordering = ['order']
@@ -331,6 +366,13 @@ class BeGoodFormFileField(models.Model):
 
   def __unicode__(self):
     return unicode(self.form) + ' - ' + self.label
+
+  def get_form_field(self):
+    field = forms.FileField()
+    field.required = self.required
+    field.label = self.label
+    return field
+
 
 class BeGoodFormMessage(models.Model):
   form = models.ForeignKey(BeGoodForm, verbose_name=_('form'), related_name="messages")
@@ -353,3 +395,19 @@ class BeGoodFormMessage(models.Model):
 
   def __unicode__(self):
     return 'Message from ' + unicode(self.form) + ' ' + unicode(self.date)
+
+
+class BeGoodFormMessageFile(models.Model):
+  form_message = models.ForeignKey(
+    BeGoodFormMessage,
+    verbose_name=_('form_message'),
+    related_name="message_files")
+  form_filefield = models.ForeignKey(
+    BeGoodFormFileField,
+    verbose_name=_('form_filefield'),
+    related_name="message_files")
+  file = models.FileField(
+    upload_to='formfiles',
+    max_length=255,
+    blank=True,
+    null=True)
