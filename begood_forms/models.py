@@ -240,9 +240,7 @@ class BeGoodForm(models.Model):
           
           fail_silently = getattr(settings, "EMAIL_FAIL_SILENTLY", True)
           conn = get_connection(fail_silently=fail_silently)
-          conn.open()
           conn.send_messages(mails)
-          conn.close()
 
           # Store as a database entry as well
           form_message = BeGoodFormMessage(

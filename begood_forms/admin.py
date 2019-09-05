@@ -94,9 +94,15 @@ class BeGoodFormAdmin(SiteModelAdmin):
 
 class BeGoodFormMessageFileInlineAdmin(admin.StackedInline):
   model = BeGoodFormMessageFile
-  fields = ['file', 'form_filefield']
-  readonly_fields = ['file', 'form_filefield']
+  fields = ['file', 'form_filefield', 'file_link']
+  readonly_fields = ['file', 'form_filefield', 'file_link']
   extra = 0
+
+  def file_link(self, obj):
+    return u'<a href="%s">%s</a>' % (obj.file.url, obj.file)
+  file_link.short_description = _('Filen')
+  file_link.allow_tags = True
+
 
 class BeGoodFormMessageAdmin(SiteModelAdmin):
   list_display = ['form', 'from_address', 'to_address', 'date', ]
