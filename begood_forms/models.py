@@ -181,7 +181,7 @@ class BeGoodForm(models.Model):
 
           file_atts = []
           for f in filefields:
-            file_atts.append(request.FILES[slugify(f.label)])
+            file_atts.append(request.FILES[f.help_text])
 
           mails = None
           if self.confirm_mail and self.confirm_subject and self.valid_content:
@@ -250,7 +250,7 @@ class BeGoodForm(models.Model):
           form_message.save()
           form_message.sites.add(*self.sites.all().values_list('id', flat=True))
           for f in filefields:
-            this_file = request.FILES[slugify(f.label)]
+            this_file = request.FILES[f.help_text]
             form_filefield = BeGoodFormFileField.objects.get(form=self, label=f.label)
             message_file = BeGoodFormMessageFile(
               form_message=form_message,
@@ -369,6 +369,7 @@ class BeGoodFormFileField(models.Model):
     field = forms.FileField()
     field.required = self.required
     field.label = self.label
+    field.help_text = self.name
     return field
 
 

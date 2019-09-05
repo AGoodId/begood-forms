@@ -23,7 +23,7 @@
         {{ field }}
       {% else %}
         <div class="{% if field.field.required %}required{% endif %} {{ field.name|get_field_class }}">
-          {% bootstrap_field field %}
+          {% bootstrap_field field show_help=False %}
         </div>
       {% endif %}
       {% if field.name|is_end_of_row %}</div>{% endif %}
