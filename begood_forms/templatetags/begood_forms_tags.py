@@ -1,11 +1,16 @@
 from django.template import loader, Library, RequestContext
 from django.conf import settings
-
+from django import template
 
 from begood_forms.models import BeGoodForm
 
 
 register = Library()
+
+
+@register.filter(name='field_type')
+def field_type(field):
+    return field.field.widget.__class__.__name__.lower()
 
 
 @register.filter
