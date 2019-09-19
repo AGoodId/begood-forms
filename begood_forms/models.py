@@ -189,8 +189,13 @@ class BeGoodForm(models.Model):
             if email_fields:
               field = self.fields.filter(type='e')[0].name
               email = form.cleaned_data[field]
+              thank_you_context = Context({
+                  'valid_content': self.valid_content,
+              })
+              t = loader.get_template('begood_forms/thank_you_mail.html')
+              thank_you_message = t.render(thank_you_context)
               # Ugly hack because wysiwyg-editor doesnt add linebreaks
-              msg = strip_tags(self.valid_content.replace('</p>', '</p>\r\n\r\n').replace('<br>', '<br>\r\n'))
+              #msg = strip_tags(self.valid_content.replace('</p>', '</p>\r\n\r\n').replace('<br>', '<br>\r\n'))
               # Overwrite the first message with one with a correct email specified
               mail1 = EmailMessage(
                 subject,
@@ -210,7 +215,7 @@ class BeGoodForm(models.Model):
                 raise
               mail2 = EmailMessage(
                 self.confirm_subject,
-                msg,
+                thank_you_message,
                 from_address,
                 [email],
                 headers={
