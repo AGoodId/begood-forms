@@ -1,6 +1,6 @@
 from datetime import datetime
 import re
-
+import base64
 
 from django import forms
 from django.conf import settings
