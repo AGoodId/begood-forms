@@ -266,7 +266,7 @@ class BeGoodForm(models.Model):
               mails = [mail1, mail2]
           if not mails:
             if sendgrid:
-              message = Mail(
+              mail1 = Mail(
                   from_email=from_address,
                   to_emails=self.target.split(','),
                   subject=subject,
@@ -281,7 +281,7 @@ class BeGoodForm(models.Model):
                 attachment = Attachment()
                 attachment.content = encoded
                 attachment.disposition = "attachment"
-                message.add_attachment(attachment)
+                mail1.add_attachment(attachment)
             else:
               mail1 = EmailMessage(
                 subject,
@@ -302,10 +302,10 @@ class BeGoodForm(models.Model):
             mails = [mail1]
 
           if sendgrid:
-            for message in mails:
+            for mail in mails:
               try:
                 sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
-                response = sg.send(message)
+                response = sg.send(mail)
                 print(response.status_code)
                 print(response.body)
                 print(response.headers)
