@@ -213,11 +213,8 @@ class BeGoodForm(models.Model):
                     from_email=from_address,
                     to_emails=self.target.split(','),
                     subject=subject,
-                    html_content=message,
-                    headers={
-                      'Reply-To': from_address,
-                      'Sender': settings.DEFAULT_FROM_EMAIL,
-                    })
+                    html_content=message)
+                mail1.reply_to=from_address
                 for att in file_atts:
                   data = att.read()
                   encoded = base64.b64encode(data).decode()
@@ -229,12 +226,8 @@ class BeGoodForm(models.Model):
                   from_email=from_address,
                   to_emails=[email],
                   subject=self.confirm_subject,
-                  html_content=thank_you_message,
-                  headers={
-                    'Reply-To': from_address,
-                    'Sender': settings.DEFAULT_FROM_EMAIL,
-                  },
-                )
+                  html_content=thank_you_message)
+                mail2.reply_to=from_address
               else:
                 # Overwrite the first message with one with a correct email specified
                 mail1 = EmailMessage(
@@ -270,11 +263,8 @@ class BeGoodForm(models.Model):
                   from_email=from_address,
                   to_emails=self.target.split(','),
                   subject=subject,
-                  html_content=message,
-                  headers={
-                    'Reply-To': from_address,
-                    'Sender': settings.DEFAULT_FROM_EMAIL,
-                  })
+                  html_content=message)
+              mail1.reply_to=from_address
               for att in file_atts:
                 data = att.read()
                 encoded = base64.b64encode(data).decode()
