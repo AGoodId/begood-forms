@@ -6,6 +6,7 @@ from django import forms
 from django.conf import settings
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+from django.utils.datastructures import MultiValueDictKeyError
 from django.contrib.sites.managers import CurrentSiteManager
 from django.core.mail import get_connection, EmailMessage
 from django.template import loader, Context
@@ -21,6 +22,14 @@ from jsonfield import JSONField
 from begood.fields import ListField
 from begood_sites.fields import MultiSiteField, RadioChoiceField
 
+
+sendgrid = not settings.DEBUG and settings.SENDGRID_API_KEY
+try:
+  from sendgrid import SendGridAPIClient
+  from sendgrid.helpers.mail import (
+    Mail, Attachment)
+except ImportError:
+   sendgrid = False
 
 
 ACTION_TYPE_CHOICES = (
@@ -143,6 +152,15 @@ class BeGoodForm(models.Model):
 
       form = form_class(request.POST, request.FILES)
       if form.is_valid():
+        filefields = [f.field for f in form if f.field.__class__.__name__ == 'FileField']
+        file_atts = []
+        for f in filefields:
+          try:
+            file_atts.append(request.FILES[f.help_text])
+          except MultiValueDictKeyError as e:
+            if f.required:  # Add form.field
+              return form
+
         if self.action == 'em':
           # Construct an email and send it
           if 'subject' in form.cleaned_data:
@@ -177,12 +195,6 @@ class BeGoodForm(models.Model):
           pattern = r'{{( |&nbsp;)*([a-zA-Z0-9-]+)( |&nbsp;)*}}'
           self.valid_content = re.sub(pattern, replacement, self.valid_content)
 
-          filefields = [f.field for f in form if f.field.__class__.__name__ == 'FileField']
-
-          file_atts = []
-          for f in filefields:
-            file_atts.append(request.FILES[f.help_text])
-
           mails = None
           if self.confirm_mail and self.confirm_subject and self.valid_content:
             email_fields = [f.field for f in form if f.field.__class__.__name__ == 'EmailField']
@@ -196,14 +208,88 @@ class BeGoodForm(models.Model):
               thank_you_message = t.render(thank_you_context)
               # Ugly hack because wysiwyg-editor doesnt add linebreaks
               #msg = strip_tags(self.valid_content.replace('</p>', '</p>\r\n\r\n').replace('<br>', '<br>\r\n'))
-              # Overwrite the first message with one with a correct email specified
+              if sendgrid:
+                mail1 = Mail(
+                    from_email=from_address,
+                    to_emails=self.target.split(','),
+                    subject=subject,
+                    html_content=message,
+                    headers={
+                      'Reply-To': from_address,
+                      'Sender': settings.DEFAULT_FROM_EMAIL,
+                    })
+                for att in file_atts:
+                  data = att.read()
+                  encoded = base64.b64encode(data).decode()
+                  attachment = Attachment()
+                  attachment.content = encoded
+                  attachment.disposition = "attachment"
+                  mail1.add_attachment(attachment)
+                mail2 = Mail(
+                  from_email=from_address,
+                  to_emails=[email],
+                  subject=self.confirm_subject,
+                  html_content=thank_you_message,
+                  headers={
+                    'Reply-To': from_address,
+                    'Sender': settings.DEFAULT_FROM_EMAIL,
+                  },
+                )
+              else:
+                # Overwrite the first message with one with a correct email specified
+                mail1 = EmailMessage(
+                  subject,
+                  message,
+                  email,
+                  self.target.split(','),
+                  headers={
+                    'Reply-To': email,
+                    'Sender': settings.DEFAULT_FROM_EMAIL,
+                  },
+                )
+                try:
+                  for att in file_atts:
+                    mail1.attach(filename=att._name, content=att.read())
+                except Exception as e:
+                  print('BeGoodForm email attachment error: %s' % e)
+                  raise
+                mail2 = EmailMessage(
+                  self.confirm_subject,
+                  thank_you_message,
+                  from_address,
+                  [email],
+                  headers={
+                    'Reply-To': from_address,
+                    'Sender': settings.DEFAULT_FROM_EMAIL,
+                  },
+                )
+              mails = [mail1, mail2]
+          if not mails:
+            if sendgrid:
+              message = Mail(
+                  from_email=from_address,
+                  to_emails=self.target.split(','),
+                  subject=subject,
+                  html_content=message,
+                  headers={
+                    'Reply-To': from_address,
+                    'Sender': settings.DEFAULT_FROM_EMAIL,
+                  })
+              for att in file_atts:
+                data = att.read()
+                encoded = base64.b64encode(data).decode()
+                attachment = Attachment()
+                attachment.content = encoded
+                attachment.disposition = "attachment"
+                message.add_attachment(attachment)
+            else:
               mail1 = EmailMessage(
                 subject,
                 message,
-                email,
+                from_address,
                 self.target.split(','),
                 headers={
-                  'Reply-To': email,
+                  'Reply-To': from_address,
                   'Sender': settings.DEFAULT_FROM_EMAIL,
                 },
               )
@@ -213,39 +299,22 @@ class BeGoodForm(models.Model):
               except Exception as e:
                 print('BeGoodForm email attachment error: %s' % e)
                 raise
-              mail2 = EmailMessage(
-                self.confirm_subject,
-                thank_you_message,
-                from_address,
-                [email],
-                headers={
-                  'Reply-To': from_address,
-                  'Sender': settings.DEFAULT_FROM_EMAIL,
-                },
-              )
-              mails = [mail1, mail2]
-          if not mails:
-            mail1 = EmailMessage(
-              subject,
-              message,
-              from_address,
-              self.target.split(','),
-              headers={
-                'Reply-To': from_address,
-                'Sender': settings.DEFAULT_FROM_EMAIL,
-              },
-            )
-            try:
-              for att in file_atts:
-                mail1.attach(filename=att._name, content=att.read())
-            except Exception as e:
-              print('BeGoodForm email attachment error: %s' % e)
-              raise
             mails = [mail1]
-          
-          fail_silently = getattr(settings, "EMAIL_FAIL_SILENTLY", True)
-          conn = get_connection(fail_silently=fail_silently)
-          conn.send_messages(mails)
+
+          if sendgrid:
+            for message in mails:
+              try:
+                sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
+                response = sg.send(message)
+                print(response.status_code)
+                print(response.body)
+                print(response.headers)
+              except Exception as e:
+                print(str(e))
+          else:
+            fail_silently = getattr(settings, "EMAIL_FAIL_SILENTLY", True)
+            conn = get_connection(fail_silently=fail_silently)
+            conn.send_messages(mails)
 
           # Store as a database entry as well
           form_message = BeGoodFormMessage(
@@ -255,13 +324,16 @@ class BeGoodForm(models.Model):
           form_message.save()
           form_message.sites.add(*self.sites.all().values_list('id', flat=True))
           for f in filefields:
-            this_file = request.FILES[f.help_text]
-            form_filefield = BeGoodFormFileField.objects.get(form=self, label=f.label)
-            message_file = BeGoodFormMessageFile(
-              form_message=form_message,
-              form_filefield=form_filefield,
-              file=this_file)
-            message_file.save()
+            try:
+              this_file = request.FILES[f.help_text]
+              form_filefield = BeGoodFormFileField.objects.get(form=self, label=f.label)
+              message_file = BeGoodFormMessageFile(
+                form_message=form_message,
+                form_filefield=form_filefield,
+                file=this_file)
+              message_file.save()
+            except MultiValueDictKeyError as e:
+              pass
     else:
       form = form_class()
 

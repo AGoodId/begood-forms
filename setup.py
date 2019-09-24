@@ -21,7 +21,7 @@ setup(
     ],
     include_package_data=True,
     long_description=read("README.markdown"),
-    install_requires=['django-datatrans', 'django-bootstrap3'],
+    install_requires=['django-datatrans', 'django-bootstrap3', 'sendgrid'],
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Framework :: Django",
