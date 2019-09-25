@@ -215,7 +215,7 @@ class BeGoodForm(models.Model):
                     subject=subject,
                     html_content=Content(
                       MimeType.html,
-                      message + "")
+                      message + ""))
                 mail1.reply_to=ReplyTo(from_address)
                 for att in file_atts:
                   data = att.read()
@@ -269,7 +269,7 @@ class BeGoodForm(models.Model):
                   subject=subject,
                   html_content=Content(
                     MimeType.html,
-                    message + "")
+                    message + ""))
               mail1.reply_to=ReplyTo(from_address)
               for att in file_atts:
                 data = att.read()
