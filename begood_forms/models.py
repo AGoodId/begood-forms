@@ -27,7 +27,7 @@ sendgrid = not settings.DEBUG and settings.SENDGRID_API_KEY
 try:
   from sendgrid import SendGridAPIClient
   from sendgrid.helpers.mail import (
-    Mail, Attachment)
+    Mail, Attachment, To, ReplyTo)
 except ImportError:
    sendgrid = False
 
@@ -211,10 +211,10 @@ class BeGoodForm(models.Model):
               if sendgrid:
                 mail1 = Mail(
                     from_email=from_address,
-                    to_emails=self.target.split(','),
+                    to_emails=To(self.target),
                     subject=subject,
                     html_content=message)
-                mail1.reply_to=from_address
+                mail1.reply_to=ReplyTo(from_address)
                 for att in file_atts:
                   data = att.read()
                   encoded = base64.b64encode(data).decode()
@@ -224,10 +224,10 @@ class BeGoodForm(models.Model):
                   mail1.add_attachment(attachment)
                 mail2 = Mail(
                   from_email=from_address,
-                  to_emails=[email],
+                  to_emails=To(email),
                   subject=self.confirm_subject,
                   html_content=thank_you_message)
-                mail2.reply_to=from_address
+                mail2.reply_to=ReplyTo(from_address)
               else:
                 # Overwrite the first message with one with a correct email specified
                 mail1 = EmailMessage(
@@ -261,10 +261,10 @@ class BeGoodForm(models.Model):
             if sendgrid:
               mail1 = Mail(
                   from_email=from_address,
-                  to_emails=self.target.split(','),
+                  to_emails=To(self.target),
                   subject=subject,
                   html_content=message)
-              mail1.reply_to=from_address
+              mail1.reply_to=ReplyTo(from_address)
               for att in file_atts:
                 data = att.read()
                 encoded = base64.b64encode(data).decode()
