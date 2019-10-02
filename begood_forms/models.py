@@ -41,6 +41,7 @@ FIELD_TYPE_CHOICES = (
     ('ta', _('Text Area')),
     ('e', _('Email')),
     ('n', _('Number')),
+    ('b', _('Checkbox')),
     ('c', _('Choices')),
     ('d', _('Date')),
     ('tm', _('Time')),
@@ -155,7 +156,7 @@ class BeGoodForm(models.Model):
         file_atts = []
         for f in filefields:
           try:
-            file_atts.append(request.FILES[f.value()])
+            file_atts.append(request.FILES[f.field.help_text])
           except MultiValueDictKeyError as e:
             if f.field.required:  # Add form.field
               return form
@@ -289,7 +290,7 @@ class BeGoodForm(models.Model):
           form_message.sites.add(*self.sites.all().values_list('id', flat=True))
           for f in filefields:
             try:
-              this_file = request.FILES[f.value()]
+              this_file = request.FILES[f.field.help_text]
               form_filefield = BeGoodFormFileField.objects.get(form=self, label=f.label)
               message_file = BeGoodFormMessageFile(
                 form_message=form_message,
@@ -337,6 +338,9 @@ class BeGoodFormField(models.Model):
 
     if self.type == 'n':  # Number
       field = forms.DecimalField()
+
+    if self.type == 'b':  # Checkbox
+      field = forms.BooleanField(required=False)
 
     if self.type == 'c':  # Choices
       field = forms.ChoiceField(choices=[(c, c) for c in self.choices])
