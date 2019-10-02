@@ -23,7 +23,27 @@
         {{ field }}
       {% else %}
         <div class="{% if field.field.required %}required{% endif %} {{ field.name|get_field_class }}">
-          {% bootstrap_field field show_help=False %}
+        {% if field|field_type == 'headerwidget' %}
+          {% bootstrap_field field %}
+        {% else %}
+          {% if not field.field.required and field|field_type not in 'select,clearablefileinput' %}
+            <div class="form-group">
+              {% if field|field_type == 'textarea' %}
+              <label class="control-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              <textarea cosl="40" rows="10" class="form-control" id="{{ field.id_for_label }}" maxlength="255" placeholder="{{ field.label }}" ></textarea>
+              {% else %}
+              <label class="control-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              <input class="form-control" id="{{ field.id_for_label }}" maxlength="255" name="{{ field.name }}" placeholder="{{ field.label }}" type="{{ field|field_type }}">
+              {% endif %}
+            </div>
+          {% else %}
+            {% if field|field_type = 'clearablefileinput' %}
+              {% bootstrap_field field show_help=False %}
+            {% else %}
+              {% bootstrap_field field %}
+            {% endif %}
+          {% endif %}
+        {% endif %}
         </div>
       {% endif %}
       {% if field.name|is_end_of_row %}</div>{% endif %}

@@ -8,6 +8,11 @@ from begood_forms.models import BeGoodForm
 register = Library()
 
 
+@register.filter(name='field_type')
+def field_type(field):
+    return field.field.widget.__class__.__name__.lower()
+
+
 @register.filter
 def get_field_class(value):
   return getattr(settings, 'BEGOOD_FORM_CLASSES', {}).get(value, '')

@@ -1,2 +1,5 @@
-{% load i18n %}{% for field in fields %}{{ field.label }}: {{ field.value }}
-{% endfor %}{% trans "Sent" %}: {{ date }}
+{% load i18n %}
+{% for field in fields %}
+{{ field.label }}: {{ field.value }}
+{% endfor %}
+{% trans "Sent" %}: {{ date }}
