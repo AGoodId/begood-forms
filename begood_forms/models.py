@@ -383,7 +383,7 @@ class BeGoodFormField(models.Model):
       class HeaderWidget(forms.Widget):
         def render(self, name, value, attrs=None):
           label =  self.attrs['label']
-          return mark_safe('<h2>'+label+'</h2>')
+          return mark_safe('<h3>'+label+'</h3>')
 
       field = forms.CharField(
           widget=HeaderWidget(attrs={'label': self.label})
