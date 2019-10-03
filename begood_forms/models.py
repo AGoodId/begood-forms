@@ -228,7 +228,7 @@ class BeGoodForm(models.Model):
               except Exception as e:
                 print('BeGoodForm email attachment error: %s' % e)
                 raise
-
+              mails = [mail1]
               if USE_SENDGRID:
                 print('mail sendgrid')
                 mail2 = Mail(
@@ -249,7 +249,8 @@ class BeGoodForm(models.Model):
                     'Sender': settings.DEFAULT_FROM_EMAIL,
                   },
                 )
-                mails = [mail1, mail2]
+                mails.append(mail2)
+          
           if not mails:
               mail1 = EmailMessage(
                 subject,
