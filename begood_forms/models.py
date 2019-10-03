@@ -1,3 +1,4 @@
+#coding=utf-8
 from datetime import datetime
 import re
 import base64
@@ -28,6 +29,7 @@ try:
     from sendgrid import SendGridAPIClient
     from sendgrid.helpers.mail import (Mail, Attachment, From, To, ReplyTo, HtmlContent, Content, MimeType)
 except ImportError:
+    print('sendgrid import exception')
     USE_SENDGRID = False
 
 
@@ -152,13 +154,13 @@ class BeGoodForm(models.Model):
 
       form = form_class(request.POST, request.FILES)
       if form.is_valid():
-        filefields = [f for f in form if f.field.__class__.__name__ == 'FileField']
+        filefields = [f.field for f in form if f.field.__class__.__name__ == 'FileField']
         file_atts = []
         for f in filefields:
           try:
-            file_atts.append(request.FILES[f.field.help_text])
+            file_atts.append(request.FILES[f.help_text])
           except MultiValueDictKeyError as e:
-            if f.field.required:  # Add form.field
+            if f.required:  # Add form.field
               return form
 
         if self.action == 'em':
@@ -202,7 +204,7 @@ class BeGoodForm(models.Model):
               field = self.fields.filter(type='e')[0].name
               email = form.cleaned_data[field]
               thank_you_context = Context({
-                  'valid_content': self.valid_content,
+                  'valid_content': self.valid_content.encode('utf-8'),  # ??
               })
               t = loader.get_template('begood_forms/thank_you_mail.html')
               thank_you_message = t.render(thank_you_context)
@@ -233,7 +235,8 @@ class BeGoodForm(models.Model):
                   from_email=From(from_address),
                   to_emails=To(email),
                   subject=self.confirm_subject)
-                mail2.add_content(mime_type='text/html', content=str(thank_you_message))
+                #print(thank_you_message)
+                mail2.add_content(mime_type='text/html', content=str(thank_you_message.encode('utf-8')))
                 mail2.reply_to=ReplyTo(from_address)
               else:
                 mail2 = EmailMessage(
@@ -290,7 +293,7 @@ class BeGoodForm(models.Model):
           form_message.sites.add(*self.sites.all().values_list('id', flat=True))
           for f in filefields:
             try:
-              this_file = request.FILES[f.field.help_text]
+              this_file = request.FILES[f.help_text]
               form_filefield = BeGoodFormFileField.objects.get(form=self, label=f.label)
               message_file = BeGoodFormMessageFile(
                 form_message=form_message,
