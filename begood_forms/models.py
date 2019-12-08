@@ -1,7 +1,9 @@
-#coding=utf-8
+# encoding: utf-8
 from datetime import datetime
 import re
 import base64
+import io
+
 
 from django import forms
 from django.conf import settings
@@ -19,6 +21,8 @@ from django.utils.text import slugify
 
 from jsonfield import JSONField
 
+from reportlab.pdfgen import canvas
+#from PyPDF2 import PdfFileWriter
 
 from begood.fields import ListField
 from begood_sites.fields import MultiSiteField, RadioChoiceField
@@ -54,6 +58,11 @@ FIELD_TYPE_CHOICES = (
     ('he', _('Header')),
 )
 
+ACCEPTED_FILE_TYPES = [
+  'image/jpg',
+  'image/jpeg',
+  'application/pdf'
+  ]
 
 def validate_ssn(value):
   def dubbla(k):
@@ -156,12 +165,24 @@ class BeGoodForm(models.Model):
       if form.is_valid():
         filefields = [f.field for f in form if f.field.__class__.__name__ == 'FileField']
         file_atts = []
+        valid_errors = []
         for f in filefields:
           try:
-            file_atts.append(request.FILES[f.help_text])
+            file_att = request.FILES[f.help_text]
+            if file_att.content_type in ACCEPTED_FILE_TYPES:
+              file_atts.append(file_att)
+            else:
+              error = ValidationError(
+                _('Ogiltig filtyp: %(filtyp)s : %(filnamn)s'),
+                code='invalid',
+                params={'filtyp': file_att.content_type,'filnamn': file_att._name},
+                )
+              valid_errors.append(error)
           except MultiValueDictKeyError as e:
             if f.required:  # Add form.field
               return form
+        if valid_errors:
+          raise ValidationError(valid_errors)
 
         if self.action == 'em':
           # Construct an email and send it
@@ -197,6 +218,53 @@ class BeGoodForm(models.Model):
           pattern = r'{{( |&nbsp;)*([a-zA-Z0-9-]+)( |&nbsp;)*}}'
           self.valid_content = re.sub(pattern, replacement, self.valid_content)
 
+          begood_form_pdf = getattr(settings, "BEGOOD_FORM_PDF", False)
+          if begood_form_pdf:
+            from reportlab.lib.units import cm, inch
+
+            from reportlab.lib.styles import getSampleStyleSheet
+            from reportlab.lib.units import inch
+            from reportlab.platypus import Paragraph, Frame
+            styles = getSampleStyleSheet()
+            styleN = styles['Normal']
+            styleH = styles['Heading1']
+            story = []
+            #add some flowables
+            story.append(Paragraph(self.name,styleH))
+
+            for field in fields:
+              if not isinstance(field['value'], basestring):
+                value = str(field['value'])
+              else:
+                value = field['value']
+              row_string = u':'.join((field['label'], value)).encode('utf-8').strip()
+              story.append(Paragraph(row_string, styleN))
+
+            date_string = 'Skickat: ' + send_date.strftime("%m/%d/%Y, %H:%M:%S")
+            story.append(Paragraph(date_string, styleN))
+
+            pdf_buffer = io.BytesIO()
+            pdf = canvas.Canvas(pdf_buffer, bottomup=1)
+
+            f = Frame(inch, inch, 6*inch, 9*inch, showBoundary=1)
+            f.addFromList(story,pdf)
+
+            #from reportlab.platypus import SimpleDocTemplate, Image
+            #pdf.translate(cm,cm)
+            pdf.showPage()
+            for att in []: #file_atts:
+              print('test')
+              print(att)
+              if att.temporary_file_path():
+                file_path = att.temporary_file_path()
+                image_file = file_path + '/' + att.name
+              if att.content_type == 'application/pdf':
+                pass
+              else:
+                pdf.drawImage(att, 0, 0, width=cm*10, preserveAspectRatio=True)
+              pdf.showPage()
+            pdf.save()
+
           mails = None
           if self.confirm_mail and self.confirm_subject and self.valid_content:
             email_fields = [f.field for f in form if f.field.__class__.__name__ == 'EmailField']
@@ -223,9 +291,13 @@ class BeGoodForm(models.Model):
                 },
               )
               try:
+                if begood_form_pdf:
+                  mail1.attach(filename='sammanfattning.pdf', content=pdf_buffer.getvalue())
+                  pdf_buffer.close()
                 for att in file_atts:
                   mail1.attach(filename=att._name, content=att.read())
               except Exception as e:
+                pdf_buffer.close()
                 print('BeGoodForm email attachment error: %s' % e)
                 raise
               mails = [mail1]
@@ -263,9 +335,13 @@ class BeGoodForm(models.Model):
                 },
               )
               try:
+                if begood_form_pdf:
+                  mail1.attach(filename='sammanfattning.pdf', content=pdf_buffer.getvalue())
+                  pdf_buffer.close()
                 for att in file_atts:
                   mail1.attach(filename=att._name, content=att.read())
               except Exception as e:
+                pdf_buffer.close()
                 print('BeGoodForm email attachment error: %s' % e)
                 raise
               mails = [mail1]
