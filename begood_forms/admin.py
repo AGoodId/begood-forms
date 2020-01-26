@@ -41,6 +41,8 @@ class BeGoodFormAdmin(SiteModelAdmin):
   search_fields = ['name']
   actions = ['generate_list', 'export_csv']
   inlines = [BeGoodFormFieldInlineAdmin, BeGoodFormFileFieldInlineAdmin, ]
+  save_as = True
+  save_on_top = True
 
   def generate_list(modeladmin, request, queryset):
     context = {'forms': queryset}
