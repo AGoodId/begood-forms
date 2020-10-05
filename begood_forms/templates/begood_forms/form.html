@@ -28,8 +28,8 @@
         {% else %}
           {% if not field.field.required and field|field_type not in 'select,clearablefileinput' %}
             <div class="form-group">
-              {% if field|field_type == 'textarea' %}
               <label class="control-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {% if field|field_type == 'textarea' %}
               <textarea cosl="40" rows="10" class="form-control" id="{{ field.id_for_label }}" maxlength="255" placeholder="{{ field.label }}" ></textarea>
               {% else %}
               <label class="control-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
