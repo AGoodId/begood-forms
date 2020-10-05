@@ -32,7 +32,6 @@
               {% if field|field_type == 'textarea' %}
               <textarea cosl="40" rows="10" class="form-control" id="{{ field.id_for_label }}" maxlength="255" placeholder="{{ field.label }}" ></textarea>
               {% else %}
-              <label class="control-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
               <input class="form-control" id="{{ field.id_for_label }}" maxlength="255" name="{{ field.name }}" placeholder="{{ field.label }}" type="{{ field|field_type }}">
               {% endif %}
             </div>

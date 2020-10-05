@@ -1,6 +1,5 @@
 from django.template import loader, Library, RequestContext
 from django.conf import settings
-from django import template
 
 from begood_forms.models import BeGoodForm
 
