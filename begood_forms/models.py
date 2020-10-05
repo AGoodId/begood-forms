@@ -71,7 +71,7 @@ def validate_phone_number(value):
   valid_content = bool(re.match(pattern, value))
   if not valid_content:
     raise ValidationError(
-        _("Inte rätt formaterat telefon nummer."))
+        _(u"Inte rätt formaterat telefon nummer."))
 
 
 def validate_ssn(value):
