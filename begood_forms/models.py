@@ -46,6 +46,7 @@ FIELD_TYPE_CHOICES = (
     ('t', _('Text')),
     ('ta', _('Text Area')),
     ('e', _('Email')),
+    ('ph', _('Phone number')),
     ('n', _('Number')),
     ('b', _('Checkbox')),
     ('c', _('Choices')),
@@ -63,6 +64,15 @@ ACCEPTED_FILE_TYPES = [
   'image/jpeg',
   'application/pdf'
   ]
+
+
+def validate_phone_number(value):
+  pattern = r'^\+?(\d|(\s\d)|(\d\s)){2,4}\s?\-?\s?(\d|(\s\d)|(\d\s)){5,7}$'
+  valid_content = bool(re.match(pattern, value))
+  if not valid_content:
+    raise ValidationError(
+        _("Inte rätt formaterat telefon nummer."))
+
 
 def validate_ssn(value):
   def dubbla(k):
@@ -350,9 +360,6 @@ class BeGoodForm(models.Model):
             try:
               sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
               response = sg.send(mail2)
-              print(response.status_code)
-              print(response.body)
-              print(response.headers)
             except Exception as e:
               print(str(e))
               raise
@@ -418,6 +425,9 @@ class BeGoodFormField(models.Model):
 
     if self.type == 'n':  # Number
       field = forms.DecimalField()
+
+    if self.type == 'ph':  # Phone number
+      field = forms.CharField(validators=[validate_phone_number])
 
     if self.type == 'b':  # Checkbox
       field = forms.BooleanField(required=False)
