@@ -50,6 +50,7 @@ FIELD_TYPE_CHOICES = (
     ('n', _('Number')),
     ('b', _('Checkbox')),
     ('c', _('Choices')),
+    ('cb', _('ChoiceCheckbox')),
     ('d', _('Date')),
     ('tm', _('Time')),
     ('tq', _('CourseExam')),
@@ -435,6 +436,14 @@ class BeGoodFormField(models.Model):
     if self.type == 'c':  # Choices
       field = forms.ChoiceField(choices=[(c, c) for c in self.choices])
     
+    if self.type == 'cb':  # Choices checkbox
+      choices = []
+      for tq in self.choices:
+        tq=tq.split(u',')
+        choices.append((tq[0],tq[0]))
+
+      field = RadioChoiceField(choices)
+
     if self.type == 'tq':  # Test Choices
       choices = []
       correct = ""

@@ -26,7 +26,7 @@
         {% if field|field_type == 'headerwidget' %}
           {% bootstrap_field field %}
         {% else %}
-          {% if not field.field.required and field|field_type not in 'select,clearablefileinput' %}
+          {% if not field.field.required and field|field_type not in 'radioselect,select,clearablefileinput' %}
             <div class="form-group">
               <label class="control-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
               {% if field|field_type == 'textarea' %}
